@@ -25,7 +25,7 @@ export default function WhyChooseUsManager() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="adminContainer space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#DCE6EC] pb-5">
         <div>
           <div className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-gold manrope-extrabold">

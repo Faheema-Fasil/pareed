@@ -5,16 +5,19 @@ const teamMembers = [
     initials: 'PK',
     name: 'Pareed Kunnumpuram',
     role: 'CEO & FOUNDER',
+    photo: '',
   },
   {
     initials: 'UK',
     name: 'Ubais Kunnumpuram',
     role: 'MANAGING DIRECTOR',
+    photo: '',
   },
   {
     initials: 'AP',
     name: 'Aliyar Pattachalil',
     role: 'GENERAL MANAGER',
+    photo: '',
   },
 ]
 
@@ -44,12 +47,22 @@ function OurTeam() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
           {teamMembers.map((member) => (
             <article
-              key={member.initials}
-              className="border border-[#DCE6EC] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-navy/5 group"
+              key={member.name}
+              className="border border-[#DCE6EC] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-navy/5 group overflow-hidden"
             >
               {/* Monogram / Portrait Placeholder */}
-              <div className="h-[320px] sm:h-[360px] bg-gradient-to-br from-[#EEF3F5] to-[#D9E7EE] flex items-center justify-center text-navy font-serif cormorant-garamond-extrabold text-[64px] font-semibold select-none group-hover:scale-[1.01] transition-transform duration-500">
-                {member.initials}
+              <div className="h-[320px] sm:h-[360px] bg-gradient-to-br from-[#EEF3F5] to-[#D9E7EE] flex items-center justify-center text-navy font-serif cormorant-garamond-extrabold text-[64px] font-semibold select-none overflow-hidden">
+                {member.photo ? (
+                  <img
+                    src={member.photo}
+                    alt={member.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <span className="group-hover:scale-105 transition-transform duration-500">
+                    {member.initials}
+                  </span>
+                )}
               </div>
 
               {/* Member Info */}
