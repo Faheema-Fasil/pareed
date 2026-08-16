@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { isValidPhoneNumber, isPossiblePhoneNumber } from 'react-phone-number-input'
 import en from 'react-phone-number-input/locale/en.json'
 import InputField from './common/InputField'
@@ -27,6 +27,9 @@ const requirementOptions = [
 export default function ContactSection() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [selectedCountry, setSelectedCountry] = useState('AE')
+  const [isVisible, setIsVisible] = useState(false)
+  const sectionRef = useRef(null)
+
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -38,6 +41,24 @@ export default function ContactSection() {
   })
 
   const [errors, setErrors] = useState({})
+
+  // Intersection Observer for scroll-triggered image zoom animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.15 }
+    )
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [])
 
   const validate = () => {
     const newErrors = {}
@@ -66,8 +87,7 @@ export default function ContactSection() {
       const isUaeValidPrefix = /^(50|52|54|55|56|58|5|6)\d{7,8}$/.test(uaeDigits)
 
       if (!isUaeValidPrefix || uaeDigits.length !== 9) {
-        newErrors.phone =
-          'Please enter a valid 9-digit UAE number '
+        newErrors.phone = 'Please enter a valid 9-digit UAE number'
       }
     } else {
       // International validation for other countries
@@ -153,20 +173,26 @@ export default function ContactSection() {
   }
 
   return (
-    <section className="bg-[#F7F9FA] py-20 md:py-28 overflow-hidden" id="contact">
+    <section
+      ref={sectionRef}
+      className="bg-[#F7F9FA] py-20 md:py-28 overflow-hidden"
+      id="contact"
+    >
       <div className="container mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 bg-white border border-[#DCE6EC]/60 shadow-sm overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 bg-white border border-[#DCE6EC]/60 shadow-sm overflow-hidden group">
           
-          {/* Left Column: Image with gradient overlay */}
+          {/* Left Column: Image with dynamic scroll zoom & gradient overlay */}
           <div className="relative min-h-[360px] sm:min-h-[460px] lg:min-h-[650px] bg-navy overflow-hidden">
             <img
               src="https://images.unsplash.com/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=1400&q=80"
               alt="Fresh Seafood Contact"
-              className="w-full h-full object-cover object-center"
+              className={`w-full h-full object-cover object-center transition-transform duration-1000 ease-out group-hover:scale-105 ${
+                isVisible ? 'scale-100' : 'scale-110'
+              }`}
               loading="lazy"
             />
             {/* Subtle Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#071D33]/40 via-[#071D33]/25 to-[#071D33]/15"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#071D33]/40 via-[#071D33]/25 to-[#071D33]/15 pointer-events-none"></div>
           </div>
 
           {/* Right Column: Contact Form */}
