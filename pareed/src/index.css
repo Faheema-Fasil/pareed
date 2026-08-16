@@ -1,0 +1,106 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Manrope:wght@200..800&display=swap');
+
+:root {
+  --serif: "Cormorant Garamond", "Georgia", serif;
+  --sans: "Manrope", "Inter", Arial, sans-serif;
+  --navy: #0B2A4A;
+  --gold: #C99A3A;
+}
+
+@theme {
+  --font-sans: var(--sans);
+  --font-serif: var(--serif);
+  --color-navy: var(--navy);
+  --color-gold: var(--gold);
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+::-webkit-scrollbar-track {
+  display: none;
+}
+
+::-webkit-scrollbar-thumb {
+  display: none;
+}
+
+::-webkit-scrollbar-corner {
+  display: none;
+}
+
+::-webkit-scrollbar-track-piece {
+  display: none;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  display: none;
+}
+
+.container {
+  @apply mx-auto px-[32px] sm:px-[38px] md:px-[60px] lg:px-[51px] xl:px-[47px];
+}
+
+.container1 {
+  @apply mx-auto px-[32px] sm:px-[38px] md:px-[60px] lg:px-[150px] xl:px-[250px];
+}
+
+@keyframes heroZoom {
+  to {
+    transform: scale(1.06);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+.cormorant-garamond {
+  font-family: "Cormorant Garamond", "Georgia", serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.cormorant-garamond-light {
+  font-family: "Cormorant Garamond", "Georgia", serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.cormorant-garamond-medium {
+  font-family: "Cormorant Garamond", "Georgia", serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.cormorant-garamond-extrabold {
+  font-family: "Cormorant Garamond", "Georgia", serif;
+  font-weight: 800;
+  font-style: normal;
+}
+
+.manrope-bold {
+  font-family: "Manrope", "Inter", Arial, sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.manrope-extrabold {
+  font-family: "Manrope", "Inter", Arial, sans-serif !important;
+  font-weight: 800 !important;
+  font-style: normal !important;
+}
