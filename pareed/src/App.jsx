@@ -19,6 +19,7 @@ import WhyChooseUsManager from './Admin/pages/WhyChooseUsManager'
 import TeamManager from './Admin/pages/TeamManager'
 import ContactInquiries from './Admin/pages/ContactInquiries'
 import GeneralSettings from './Admin/pages/GeneralSettings'
+import AdminProfileSettings from './Admin/pages/AdminProfileSettings'
 
 export default function App() {
   return (
@@ -45,6 +46,8 @@ export default function App() {
         <Route path="team" element={<TeamManager />} />
         <Route path="inquiries" element={<ContactInquiries />} />
         <Route path="settings" element={<GeneralSettings />} />
+        <Route path="account" element={<AdminProfileSettings />} />
+        <Route path="profile" element={<AdminProfileSettings />} />
       </Route>
 
       {/* Fallback to Home */}

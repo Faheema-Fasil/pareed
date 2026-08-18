@@ -1,4 +1,4 @@
-import { commonAPI, getAPI, postAPI } from '../commonAPI'
+import { commonAPI, getAPI, postAPI, putAPI } from '../commonAPI'
 import { SERVER_URL } from '../server_url'
 
 /**
@@ -39,6 +39,49 @@ export const getMeAPI = async (tokenOrHeader) => {
       : tokenOrHeader || getAuthHeader()
 
   return await getAPI(`${SERVER_URL}/api/auth/me`, header)
+}
+
+/**
+ * Update user profile (Name, Email, Avatar)
+ * @route PUT /api/auth/profile, PUT /api/users/profile, PUT /api/auth/me
+ * @param {Object} data - { name, email, avatar, profileImage }
+ */
+export const updateProfileAPI = async (data, tokenOrHeader) => {
+  const header =
+    typeof tokenOrHeader === 'string'
+      ? { Authorization: `Bearer ${tokenOrHeader}` }
+      : tokenOrHeader || getAuthHeader()
+
+  let res = await putAPI(`${SERVER_URL}/api/auth/profile`, data, header)
+  if (res && res.status >= 200 && res.status < 300) return res
+
+  res = await putAPI(`${SERVER_URL}/api/users/profile`, data, header)
+  if (res && res.status >= 200 && res.status < 300) return res
+
+  res = await putAPI(`${SERVER_URL}/api/auth/me`, data, header)
+  if (res && res.status >= 200 && res.status < 300) return res
+
+  return await putAPI(`${SERVER_URL}/api/auth/updatedetails`, data, header)
+}
+
+/**
+ * Update user password
+ * @route PUT /api/auth/updatepassword, PUT /api/users/password
+ * @param {Object} data - { currentPassword, newPassword }
+ */
+export const updatePasswordAPI = async (data, tokenOrHeader) => {
+  const header =
+    typeof tokenOrHeader === 'string'
+      ? { Authorization: `Bearer ${tokenOrHeader}` }
+      : tokenOrHeader || getAuthHeader()
+
+  let res = await putAPI(`${SERVER_URL}/api/auth/updatepassword`, data, header)
+  if (res && res.status >= 200 && res.status < 300) return res
+
+  res = await putAPI(`${SERVER_URL}/api/users/password`, data, header)
+  if (res && res.status >= 200 && res.status < 300) return res
+
+  return await putAPI(`${SERVER_URL}/api/auth/change-password`, data, header)
 }
 
 /**
