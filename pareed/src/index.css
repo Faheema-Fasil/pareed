@@ -49,11 +49,11 @@ html {
 }
 
 .container {
-  @apply mx-auto px-[32px] sm:px-[38px] md:px-[60px] lg:px-[51px] xl:px-[47px];
+  @apply mx-auto px-[32px] sm:px-[38px] md:px-[40px] lg:px-[51px] xl:px-[47px];
 }
 
 .container1 {
-  @apply mx-auto px-[32px] sm:px-[38px] md:px-[60px] lg:px-[150px] xl:px-[250px];
+  @apply mx-auto px-[32px] sm:px-[38px] md:px-[40px] lg:px-[150px] xl:px-[250px];
 }
 .adminContainer{
   @apply max-w-[1050px] mx-auto;

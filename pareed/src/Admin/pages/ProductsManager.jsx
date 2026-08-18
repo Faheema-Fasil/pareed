@@ -8,9 +8,25 @@ import {
 } from '../../services/functions/productFunctions'
 import { uploadImageAPI } from '../../services/functions/uploadFunctions'
 
+const DEFAULT_PRODUCT_CATEGORIES = [
+  'Seer Fish',
+  'Whole Fish',
+  'Fish Fillet',
+  'King Fish',
+  'White Pomfret',
+  'Black Pomfret',
+  'Sea Bass',
+  'Salmon',
+  'Prawns & Shrimps',
+  'Crabs & Lobsters',
+  'Squid & Cuttlefish',
+  'Frozen Seafood',
+]
+
 export default function ProductsManager() {
   const [products, setProducts] = useState([])
   const [originalProducts, setOriginalProducts] = useState([])
+  const [productCategories, setProductCategories] = useState(DEFAULT_PRODUCT_CATEGORIES)
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -40,17 +56,25 @@ export default function ProductsManager() {
             return (b._id || '').localeCompare(a._id || '')
           })
 
-          const formatted = sorted.map((item, idx) => ({
-            id: item._id || item.id || idx + 1,
-            _id: item._id,
-            number: item.number || String(idx + 1).padStart(2, '0'),
-            name: item.name || '',
-            sub: item.sub || item.subtitle || '',
-            description: item.description || '',
-            image: item.image || item.imageUrl || '',
-            imageFile: null,
-            createdAt: item.createdAt,
-          }))
+          const extractedCats = new Set(DEFAULT_PRODUCT_CATEGORIES)
+
+          const formatted = sorted.map((item, idx) => {
+            const sub = item.sub || item.subtitle || ''
+            if (sub && sub.trim()) extractedCats.add(sub.trim())
+
+            return {
+              id: item._id || item.id || idx + 1,
+              _id: item._id,
+              number: item.number || String(idx + 1).padStart(2, '0'),
+              name: item.name || '',
+              sub: sub,
+              description: item.description || '',
+              image: item.image || item.imageUrl || '',
+              imageFile: null,
+              createdAt: item.createdAt,
+            }
+          })
+          setProductCategories(Array.from(extractedCats))
           setProducts(formatted)
           setOriginalProducts(JSON.parse(JSON.stringify(formatted)))
         } else {
@@ -94,9 +118,18 @@ export default function ProductsManager() {
   const handleProductChange = (index, field, value, file = null) => {
     const updated = [...products]
     updated[index][field] = value
+
+    if (field === 'sub') {
+      const cleanSub = value.trim()
+      if (cleanSub && !productCategories.includes(cleanSub)) {
+        setProductCategories((prev) => [...prev, cleanSub])
+      }
+    }
+
     if (field === 'image') {
       updated[index].imageFile = file || null
     }
+
     setProducts(updated)
     setIsDirty(true)
     setSaved(false)
@@ -287,7 +320,7 @@ export default function ProductsManager() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex justify-end w-full items-center gap-3 flex-wrap">
           <button
             type="button"
             onClick={handleAddProduct}
@@ -363,11 +396,17 @@ export default function ProductsManager() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                    PRODUCT NAME *
-                  </label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                      PRODUCT NAME * (MAX 40)
+                    </label>
+                    <span className={`text-[10px] font-mono font-bold ${(product.name || '').length >= 35 ? 'text-amber-600' : 'text-slate-400'}`}>
+                      {(product.name || '').length} / 40
+                    </span>
+                  </div>
                   <input
                     type="text"
+                    maxLength={40}
                     value={product.name}
                     onChange={(e) =>
                       handleProductChange(index, 'name', e.target.value)
@@ -378,32 +417,50 @@ export default function ProductsManager() {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                    SPECIES / SUBTITLE *
-                  </label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                      CATEGORY / SPECIES * (MAX 40)
+                    </label>
+                    <span className={`text-[10px] font-mono font-bold ${(product.sub || '').length >= 35 ? 'text-amber-600' : 'text-slate-400'}`}>
+                      {(product.sub || '').length} / 40
+                    </span>
+                  </div>
                   <input
                     type="text"
+                    maxLength={40}
+                    list={`product-categories-list-${index}`}
                     value={product.sub}
                     onChange={(e) =>
                       handleProductChange(index, 'sub', e.target.value)
                     }
-                    placeholder="e.g. Seer Fish / Scomberomorus"
+                    placeholder="e.g. Seer Fish / Whole Fish"
                     className="w-full border border-[#DCE6EC] px-3.5 py-2.5 text-[14px] text-ink outline-none focus:border-[#1976A8] rounded-[2px]"
                   />
+                  <datalist id={`product-categories-list-${index}`}>
+                    {productCategories.map((cat) => (
+                      <option key={cat} value={cat} />
+                    ))}
+                  </datalist>
                 </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                  PRODUCT DESCRIPTION *
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                    PRODUCT DESCRIPTION * (MAX 180 CHARACTERS)
+                  </label>
+                  <span className={`text-[10px] font-mono font-bold ${(product.description || '').length >= 165 ? 'text-amber-600' : 'text-slate-400'}`}>
+                    {(product.description || '').length} / 180
+                  </span>
+                </div>
                 <textarea
                   rows="2"
+                  maxLength={180}
                   value={product.description}
                   onChange={(e) =>
                     handleProductChange(index, 'description', e.target.value)
                   }
-                  placeholder="Describe freshness, texture, and commercial appeal..."
+                  placeholder="Describe freshness, texture, and commercial appeal (max 180 characters)..."
                   className="w-full border border-[#DCE6EC] px-3.5 py-2.5 text-[14px] text-ink outline-none focus:border-[#1976A8] rounded-[2px]"
                 ></textarea>
               </div>

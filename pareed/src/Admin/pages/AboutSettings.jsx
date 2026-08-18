@@ -137,7 +137,7 @@ export default function AboutSettings() {
   return (
     <div className="max-w-[1050px] mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#DCE6EC] pb-5">
+      <div className="flex flex-col lg:flex-row justify-between lg:items-center items-start gap-4 border-b border-[#DCE6EC] pb-5">
         <div>
           <div className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-gold manrope-extrabold">
             ABOUT SECTION
@@ -150,7 +150,7 @@ export default function AboutSettings() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex justify-end w-full items-center gap-3">
           {isDirty && (
             <button
               type="button"
@@ -193,19 +193,27 @@ export default function AboutSettings() {
             </label>
             <input
               type="text"
+              maxLength={10}
               name="sinceYear"
               value={aboutData.sinceYear}
               onChange={handleChange}
+              placeholder="1990"
               className="w-full border border-[#DCE6EC] px-4 py-3 text-[14px] font-serif font-bold text-navy outline-none focus:border-[#1976A8] rounded-[2px]"
             />
           </div>
 
           <div className="md:col-span-2">
-            <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-              EYEBROW LABEL
-            </label>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                EYEBROW LABEL (MAX 40)
+              </label>
+              <span className={`text-[10px] font-mono font-bold ${(aboutData.eyebrow || '').length >= 35 ? 'text-amber-600' : 'text-slate-400'}`}>
+                {(aboutData.eyebrow || '').length} / 40
+              </span>
+            </div>
             <input
               type="text"
+              maxLength={40}
               name="eyebrow"
               value={aboutData.eyebrow}
               onChange={handleChange}
@@ -216,11 +224,17 @@ export default function AboutSettings() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-              HEADLINE LINE 1
-            </label>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                HEADLINE LINE 1 (MAX 40)
+              </label>
+              <span className={`text-[10px] font-mono font-bold ${(aboutData.titleLine1 || '').length >= 35 ? 'text-amber-600' : 'text-slate-400'}`}>
+                {(aboutData.titleLine1 || '').length} / 40
+              </span>
+            </div>
             <input
               type="text"
+              maxLength={40}
               name="titleLine1"
               value={aboutData.titleLine1}
               onChange={handleChange}
@@ -229,11 +243,17 @@ export default function AboutSettings() {
           </div>
 
           <div>
-            <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-              HEADLINE LINE 2
-            </label>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                HEADLINE LINE 2 (MAX 40)
+              </label>
+              <span className={`text-[10px] font-mono font-bold ${(aboutData.titleLine2 || '').length >= 35 ? 'text-amber-600' : 'text-slate-400'}`}>
+                {(aboutData.titleLine2 || '').length} / 40
+              </span>
+            </div>
             <input
               type="text"
+              maxLength={40}
               name="titleLine2"
               value={aboutData.titleLine2}
               onChange={handleChange}
@@ -243,11 +263,17 @@ export default function AboutSettings() {
         </div>
 
         <div>
-          <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-            PRIMARY PARAGRAPH (FOUNDING STORY)
-          </label>
+          <div className="flex justify-between items-center mb-1.5">
+            <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+              PRIMARY PARAGRAPH (FOUNDING STORY) (MAX 350 CHARACTERS)
+            </label>
+            <span className={`text-[10px] font-mono font-bold ${(aboutData.paragraph1 || '').length >= 320 ? 'text-amber-600' : 'text-slate-400'}`}>
+              {(aboutData.paragraph1 || '').length} / 350
+            </span>
+          </div>
           <textarea
             name="paragraph1"
+            maxLength={350}
             rows="3"
             value={aboutData.paragraph1}
             onChange={handleChange}
@@ -256,11 +282,17 @@ export default function AboutSettings() {
         </div>
 
         <div>
-          <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-            SECONDARY PARAGRAPH (MISSION FOCUS)
-          </label>
+          <div className="flex justify-between items-center mb-1.5">
+            <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+              SECONDARY PARAGRAPH (MISSION FOCUS) (MAX 350 CHARACTERS)
+            </label>
+            <span className={`text-[10px] font-mono font-bold ${(aboutData.paragraph2 || '').length >= 320 ? 'text-amber-600' : 'text-slate-400'}`}>
+              {(aboutData.paragraph2 || '').length} / 350
+            </span>
+          </div>
           <textarea
             name="paragraph2"
+            maxLength={350}
             rows="2"
             value={aboutData.paragraph2}
             onChange={handleChange}

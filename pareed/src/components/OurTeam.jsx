@@ -117,10 +117,10 @@ function OurTeam() {
 
                 {/* Member Info */}
                 <div className="p-6 sm:p-7 bg-white">
-                  <h3 className="font-serif cormorant-garamond-extrabold text-[28px] sm:text-[30px] font-semibold text-navy leading-[1.1] mb-2">
+                  <h3 className="font-serif cormorant-garamond-extrabold text-[26px] sm:text-[28px] font-semibold text-navy leading-[1.15] mb-2 break-words line-clamp-1">
                     {member.name}
                   </h3>
-                  <p className="text-gold text-[11px] font-extrabold tracking-[0.14em] uppercase manrope-extrabold">
+                  <p className="text-gold text-[11px] font-extrabold tracking-[0.14em] uppercase manrope-extrabold break-words line-clamp-1">
                     {member.role}
                   </p>
                 </div>

@@ -102,10 +102,10 @@ function WhyChooseUs() {
               <span className="text-gold text-[11px] font-extrabold tracking-[0.16em] manrope-extrabold">
                 {item.number}
               </span>
-              <h3 className="font-serif cormorant-garamond-extrabold text-[28px] sm:text-[30px] font-semibold text-white my-[14px] leading-[1.1]">
+              <h3 className="font-serif cormorant-garamond-extrabold text-[26px] sm:text-[28px] font-semibold text-white my-[14px] leading-[1.15] break-words line-clamp-2">
                 {item.title}
               </h3>
-              <p className="text-[#C9D7DF] text-[13px] sm:text-[14px] leading-[1.7]">
+              <p className="text-[#C9D7DF] text-[13px] sm:text-[14px] leading-[1.7] break-words line-clamp-4">
                 {item.description}
               </p>
             </div>

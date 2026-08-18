@@ -13,6 +13,7 @@ import DashboardLayout from './Admin/AdminLayout/DashboardLayout'
 import DashboardOverview from './Admin/pages/DashboardOverview'
 import HeroSettings from './Admin/pages/HeroSettings'
 import AboutSettings from './Admin/pages/AboutSettings'
+import MissionVisionSettings from './Admin/pages/MissionVisionSettings'
 import ServicesManager from './Admin/pages/ServicesManager'
 import ProductsManager from './Admin/pages/ProductsManager'
 import WhyChooseUsManager from './Admin/pages/WhyChooseUsManager'
@@ -40,6 +41,8 @@ export default function App() {
         <Route index element={<DashboardOverview />} />
         <Route path="hero" element={<HeroSettings />} />
         <Route path="about" element={<AboutSettings />} />
+        <Route path="mission-vision" element={<MissionVisionSettings />} />
+        <Route path="mission" element={<MissionVisionSettings />} />
         <Route path="services" element={<ServicesManager />} />
         <Route path="products" element={<ProductsManager />} />
         <Route path="why-us" element={<WhyChooseUsManager />} />

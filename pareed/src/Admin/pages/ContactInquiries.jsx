@@ -126,7 +126,7 @@ export default function ContactInquiries() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex justify-end w-full items-center gap-3">
           <button
             type="button"
             onClick={fetchInquiries}

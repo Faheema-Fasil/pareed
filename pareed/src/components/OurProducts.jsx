@@ -69,17 +69,17 @@ function OurProducts() {
 
   return (
     <section className="bg-white py-20 md:py-28 overflow-hidden" id="products">
-      <div className="container mx-auto">
+      <div className="container ">
         
         {/* Section Header */}
-        <div className="mb-12 md:mb-[50px] flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-10">
+        <div className="mb-12 md:mb-[50px] flex flex-col lg:flex-row lg:items-end justify-between gap-6 md:gap-10">
           <div>
             <div className="text-gold text-[12px] manrope-extrabold font-extrabold tracking-[0.22em] uppercase mb-[18px]">
               Our Products
             </div>
             <h2 className="font-serif cormorant-garamond-extrabold text-[clamp(42px,4vw,64px)] font-semibold leading-[0.95] tracking-[-0.02em] text-navy">
               Freshness
-              <br />
+              <br className='hidden lg:block' />
               you can see.
             </h2>
           </div>
@@ -102,10 +102,10 @@ function OurProducts() {
             {productsList.map((product, pIdx) => (
               <article
                 key={product.number || pIdx}
-                className="w-full md:w-[calc(50%-10px)] grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr] bg-[#F7F9FA] min-h-[470px] flex-shrink-0 overflow-hidden"
+                className="w-full md:w-[calc(50%-10px)] grid grid-cols-1 md:grid-cols-2 bg-[#F7F9FA] min-h-[440px] flex-shrink-0 overflow-hidden rounded-[2px] border border-[#E9EFF2]"
               >
                 {/* Product Image */}
-                <div className="h-[280px] md:h-full relative overflow-hidden bg-navy">
+                <div className="h-[280px] md:h-full relative overflow-hidden bg-navy min-h-[260px]">
                   <img
                     src={getFullImageUrl(product.image)}
                     alt={product.name}
@@ -115,26 +115,26 @@ function OurProducts() {
                 </div>
 
                 {/* Product Info */}
-                <div className="p-8 sm:p-[44px] flex flex-col justify-center">
-                  <span className="text-gold text-[12px] manrope-extrabold font-extrabold tracking-[0.15em]">
+                <div className="p-7 sm:p-5 lg:p-9 flex flex-col justify-center">
+                  <span className="text-gold  text-[12px] manrope-extrabold font-extrabold tracking-[0.15em] uppercase line-clamp-1">
                     {product.label}
                   </span>
 
-                  <h3 className="font-serif cormorant-garamond-extrabold text-[34px] sm:text-[42px] font-semibold text-navy leading-[1.05] mt-[13px] mb-[5px]">
+                  <h3 className="font-serif cormorant-garamond-extrabold text-[30px] sm:text-[36px] font-semibold text-navy leading-[1.1] mt-[10px] mb-[6px] break-words line-clamp-2">
                     {product.name}
                   </h3>
 
-                  <small className="text-[#1976A8] text-[11px] font-extrabold uppercase tracking-[0.1em] block">
+                  <small className="text-[#1976A8] text-[11px] font-extrabold uppercase tracking-[0.12em] block break-words line-clamp-1 mb-2">
                     {product.sub}
                   </small>
 
-                  <p className="text-[#647483] text-[14px] leading-[1.7] my-3">
+                  <p className="text-[#647483] text-[13px] sm:text-[14px] leading-[1.65] my-2 break-words line-clamp-3">
                     {product.description}
                   </p>
 
                   <a
                     href="#contact"
-                    className="self-start mt-[14px] inline-flex items-center justify-center gap-[10px] px-[21px] py-[14px] rounded-[2px] bg-gold text-white font-extrabold text-[12px] tracking-[0.08em] hover:-translate-y-[3px] hover:shadow-lg hover:shadow-gold/25 transition-all duration-300"
+                    className="self-start mt-[16px] inline-flex items-center justify-center gap-[10px] px-[21px] py-[13px] rounded-[2px] bg-gold text-white font-extrabold text-[12px] tracking-[0.08em] hover:-translate-y-[2px] hover:shadow-lg hover:shadow-gold/25 transition-all duration-300"
                   >
                     ENQUIRE →
                   </a>

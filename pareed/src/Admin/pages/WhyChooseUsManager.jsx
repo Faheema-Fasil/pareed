@@ -150,7 +150,7 @@ export default function WhyChooseUsManager() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex justify-end w-full items-center gap-3">
           {isDirty && (
             <button
               type="button"
@@ -200,11 +200,17 @@ export default function WhyChooseUsManager() {
             </div>
 
             <div>
-              <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                TITLE *
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                  TITLE * (MAX 30)
+                </label>
+                <span className={`text-[10px] font-mono font-bold ${(item.title || '').length >= 25 ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {(item.title || '').length} / 30
+                </span>
+              </div>
               <input
                 type="text"
+                maxLength={30}
                 value={item.title}
                 onChange={(e) => handleChange(index, 'title', e.target.value)}
                 className="w-full border border-[#DCE6EC] px-3 py-2 text-[14px] text-ink outline-none focus:border-[#1976A8] rounded-[2px]"
@@ -213,15 +219,21 @@ export default function WhyChooseUsManager() {
             </div>
 
             <div>
-              <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                DESCRIPTION *
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                  DESCRIPTION * (MAX 120 CHARACTERS)
+                </label>
+                <span className={`text-[10px] font-mono font-bold ${(item.description || '').length >= 105 ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {(item.description || '').length} / 120
+                </span>
+              </div>
               <textarea
                 rows="2"
+                maxLength={120}
                 value={item.description}
                 onChange={(e) => handleChange(index, 'description', e.target.value)}
                 className="w-full border border-[#DCE6EC] px-3 py-2 text-[13px] text-ink outline-none focus:border-[#1976A8] rounded-[2px]"
-                placeholder="Describe this pillar..."
+                placeholder="Describe this pillar (max 120 characters)..."
               ></textarea>
             </div>
           </div>

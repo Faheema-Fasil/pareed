@@ -122,8 +122,8 @@ export default function DashboardOverview() {
       </div>
 
       {/* Content Shortcuts & Recent Enquiries */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+
         {/* Section Editors Quick Links */}
         <div className="lg:col-span-1 bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4">
           <h2 className="font-serif text-[20px] font-bold text-navy border-b border-slate-100 pb-3">

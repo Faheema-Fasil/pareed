@@ -262,7 +262,7 @@ export default function TeamManager() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex justify-end w-full items-center gap-3 flex-wrap">
           <button
             type="button"
             onClick={handleAddMember}
@@ -332,11 +332,17 @@ export default function TeamManager() {
                 {getInitials(member.name) || member.initials || 'PK'}
               </div>
               <div className="flex-1">
-                <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                  FULL NAME *
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                    FULL NAME * (MAX 40)
+                  </label>
+                  <span className={`text-[10px] font-mono font-bold ${(member.name || '').length >= 35 ? 'text-amber-600' : 'text-slate-400'}`}>
+                    {(member.name || '').length} / 40
+                  </span>
+                </div>
                 <input
                   type="text"
+                  maxLength={40}
                   value={member.name}
                   onChange={(e) => handleChange(index, 'name', e.target.value)}
                   placeholder="e.g. Pareed Kunnumpuram"
@@ -347,11 +353,17 @@ export default function TeamManager() {
 
             {/* Designation / Role */}
             <div>
-              <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                DESIGNATION / ROLE *
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                  DESIGNATION / ROLE * (MAX 40)
+                </label>
+                <span className={`text-[10px] font-mono font-bold ${(member.role || '').length >= 35 ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {(member.role || '').length} / 40
+                </span>
+              </div>
               <input
                 type="text"
+                maxLength={40}
                 value={member.role}
                 onChange={(e) => handleChange(index, 'role', e.target.value)}
                 placeholder="e.g. CEO & FOUNDER"

@@ -24,12 +24,17 @@ function Services() {
                         return (b._id || '').localeCompare(a._id || '')
                     })
                     setServicesList(
-                        sorted.map((item, idx) => ({
-                            number: String(idx + 1).padStart(2, '0'),
-                            title: item.title || '',
-                            description: item.description || '',
-                            image: getFullImageUrl(item.image || item.imageUrl || ''),
-                        }))
+                        sorted.map((item, idx) => {
+                            const tagVal = (item.tag || item.category || 'SUPPLY').toUpperCase().trim()
+                            return {
+                                number: item.number || String(idx + 1).padStart(2, '0'),
+                                category: tagVal,
+                                tag: tagVal,
+                                title: item.title || '',
+                                description: item.description || '',
+                                image: getFullImageUrl(item.image || item.imageUrl || ''),
+                            }
+                        })
                     )
                 }
             }
@@ -73,7 +78,7 @@ function Services() {
                     {servicesList.map((service, sIdx) => (
                         <article
                             key={service.number || sIdx}
-                            className="group relative min-h-[300px] overflow-hidden bg-[#0B2A4A] text-white"
+                            className="group relative min-h-[320px] max-h-[380px] overflow-hidden bg-[#0B2A4A] text-white rounded-[2px]"
                         >
 
                             {/* Image */}
@@ -84,17 +89,17 @@ function Services() {
                             />
 
                             {/* Overlay */}
-                            <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-b from-[#071D33]/10 to-[#071D33]/95 p-8">
+                            <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-b from-[#071D33]/15 via-[#071D33]/70 to-[#071D33]/98 p-6 sm:p-8">
 
-                                <span className="mb-3 text-[11px] font-extrabold tracking-[0.15em] text-[#C99A3A]">
-                                    {service.number} — SERVICE
+                                <span className="mb-2.5 text-[11px] font-extrabold tracking-[0.18em] text-gold uppercase manrope-extrabold">
+                                    {service.number} / {service.tag}
                                 </span>
 
-                                <h3 className="font-serif text-[34px] font-semibold leading-none">
+                                <h3 className="font-serif text-[28px] sm:text-[32px] font-semibold leading-[1.1] text-white break-words line-clamp-2">
                                     {service.title}
                                 </h3>
 
-                                <p className="my-3 max-w-[480px] text-sm leading-[1.65] text-[#DCE8EF]">
+                                <p className="my-2.5 max-w-[480px] text-[13px] sm:text-[14px] leading-[1.65] text-[#DCE8EF] break-words line-clamp-3">
                                     {service.description}
                                 </p>
 

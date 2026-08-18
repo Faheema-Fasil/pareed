@@ -75,3 +75,40 @@ export const deleteServiceAPI = async (id, tokenOrHeader) => {
 
   return await deleteAPI(`${SERVER_URL}/api/services/${id}`, header)
 }
+
+/**
+ * @desc    Get all available service categories/tags
+ * @route   GET /api/services/categories
+ * @access  Public
+ */
+export const getServiceCategoriesAPI = async () => {
+  return await getAPI(`${SERVER_URL}/api/services/tags`)
+}
+
+/**
+ * @desc    Add a new service category/tag option
+ * @route   POST /api/services/categories
+ * @access  Protected (Admin)
+ */
+export const addServiceCategoryAPI = async (name, tokenOrHeader) => {
+  const header =
+    typeof tokenOrHeader === 'string'
+      ? { Authorization: `Bearer ${tokenOrHeader}` }
+      : tokenOrHeader || getAuthHeader()
+
+  return await postAPI(`${SERVER_URL}/api/services/tags`, { name }, header)
+}
+
+/**
+ * @desc    Delete a custom service category/tag option
+ * @route   DELETE /api/services/categories/:name
+ * @access  Protected (Admin)
+ */
+export const deleteServiceCategoryAPI = async (name, tokenOrHeader) => {
+  const header =
+    typeof tokenOrHeader === 'string'
+      ? { Authorization: `Bearer ${tokenOrHeader}` }
+      : tokenOrHeader || getAuthHeader()
+
+  return await deleteAPI(`${SERVER_URL}/api/services/categories/${encodeURIComponent(name)}`, header)
+}

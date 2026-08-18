@@ -146,7 +146,7 @@ export default function HeroSettings() {
   return (
     <div className="adminContainer space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#DCE6EC] pb-5">
+      <div className="flex flex-col lg:flex-row justify-between lg:items-center items-start gap-4 border-b border-[#DCE6EC] pb-5">
         <div>
           <div className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-gold manrope-extrabold">
             HOME SECTION
@@ -159,7 +159,7 @@ export default function HeroSettings() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex justify-end w-full items-center gap-3">
           {isDirty && (
             <button
               type="button"
@@ -199,11 +199,17 @@ export default function HeroSettings() {
         {/* Eyebrow & Headlines */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="md:col-span-2">
-            <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-              EYEBROW TAGLINE
-            </label>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                EYEBROW TAGLINE (MAX 40)
+              </label>
+              <span className={`text-[10px] font-mono font-bold ${(heroData.eyebrow || '').length >= 35 ? 'text-amber-600' : 'text-slate-400'}`}>
+                {(heroData.eyebrow || '').length} / 40
+              </span>
+            </div>
             <input
               type="text"
+              maxLength={40}
               name="eyebrow"
               value={heroData.eyebrow}
               onChange={handleChange}
@@ -212,11 +218,17 @@ export default function HeroSettings() {
           </div>
 
           <div>
-            <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-              MAIN HEADLINE (LINE 1)
-            </label>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                MAIN HEADLINE (LINE 1) (MAX 40)
+              </label>
+              <span className={`text-[10px] font-mono font-bold ${(heroData.titleLine1 || '').length >= 35 ? 'text-amber-600' : 'text-slate-400'}`}>
+                {(heroData.titleLine1 || '').length} / 40
+              </span>
+            </div>
             <input
               type="text"
+              maxLength={40}
               name="titleLine1"
               value={heroData.titleLine1}
               onChange={handleChange}
@@ -225,11 +237,17 @@ export default function HeroSettings() {
           </div>
 
           <div>
-            <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-              MAIN HEADLINE (LINE 2)
-            </label>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                MAIN HEADLINE (LINE 2) (MAX 40)
+              </label>
+              <span className={`text-[10px] font-mono font-bold ${(heroData.titleLine2 || '').length >= 35 ? 'text-amber-600' : 'text-slate-400'}`}>
+                {(heroData.titleLine2 || '').length} / 40
+              </span>
+            </div>
             <input
               type="text"
+              maxLength={40}
               name="titleLine2"
               value={heroData.titleLine2}
               onChange={handleChange}
@@ -240,11 +258,17 @@ export default function HeroSettings() {
 
         {/* Subtitle / Description */}
         <div>
-          <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-            HERO DESCRIPTION / PARAGRAPH
-          </label>
+          <div className="flex justify-between items-center mb-1.5">
+            <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+              HERO DESCRIPTION / PARAGRAPH (MAX 220 CHARACTERS)
+            </label>
+            <span className={`text-[10px] font-mono font-bold ${(heroData.description || '').length >= 200 ? 'text-amber-600' : 'text-slate-400'}`}>
+              {(heroData.description || '').length} / 220
+            </span>
+          </div>
           <textarea
             name="description"
+            maxLength={220}
             rows="3"
             value={heroData.description}
             onChange={handleChange}
@@ -253,13 +277,19 @@ export default function HeroSettings() {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-slate-100">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-slate-100">
           <div>
-            <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-              PRIMARY BUTTON TEXT
-            </label>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                PRIMARY BUTTON TEXT (MAX 25)
+              </label>
+              <span className={`text-[10px] font-mono font-bold ${(heroData.primaryButtonText || '').length >= 20 ? 'text-amber-600' : 'text-slate-400'}`}>
+                {(heroData.primaryButtonText || '').length} / 25
+              </span>
+            </div>
             <input
               type="text"
+              maxLength={25}
               name="primaryButtonText"
               value={heroData.primaryButtonText}
               onChange={handleChange}
@@ -268,18 +298,24 @@ export default function HeroSettings() {
           </div>
 
           <div>
-            <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-              SECONDARY BUTTON TEXT
-            </label>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                SECONDARY BUTTON TEXT (MAX 25)
+              </label>
+              <span className={`text-[10px] font-mono font-bold ${(heroData.secondaryButtonText || '').length >= 20 ? 'text-amber-600' : 'text-slate-400'}`}>
+                {(heroData.secondaryButtonText || '').length} / 25
+              </span>
+            </div>
             <input
               type="text"
+              maxLength={25}
               name="secondaryButtonText"
               value={heroData.secondaryButtonText}
               onChange={handleChange}
               className="w-full border border-[#DCE6EC] px-4 py-3 text-[14px] text-ink outline-none focus:border-[#1976A8] rounded-[2px]"
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Established Badge */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-slate-100">

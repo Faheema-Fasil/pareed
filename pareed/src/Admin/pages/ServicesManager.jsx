@@ -5,12 +5,29 @@ import {
   addServiceAPI,
   updateServiceAPI,
   deleteServiceAPI,
+  getServiceCategoriesAPI,
+  addServiceCategoryAPI,
+  deleteServiceCategoryAPI,
 } from '../../services/functions/serviceFunctions'
 import { uploadImageAPI } from '../../services/functions/uploadFunctions'
+
+const DEFAULT_CATEGORIES = [
+  'SUPPLY',
+  'WHOLESALE',
+  'COMMERCIAL',
+  'DISTRIBUTION',
+  'LOGISTICS',
+  'PROCESSING',
+  'IMPORT / EXPORT',
+]
 
 export default function ServicesManager() {
   const [services, setServices] = useState([])
   const [originalServices, setOriginalServices] = useState([])
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [categoryLoading, setCategoryLoading] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -22,7 +39,27 @@ export default function ServicesManager() {
 
   useEffect(() => {
     fetchServices()
+    fetchCategories()
   }, [])
+
+  const fetchCategories = async () => {
+    try {
+      const res = await getServiceCategoriesAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (Array.isArray(data) && data.length > 0) {
+          const merged = Array.from(new Set([...DEFAULT_CATEGORIES, ...data.map((c) => (typeof c === 'string' ? c : c.name || '').toUpperCase().trim())]))
+          setCategories(merged.filter(Boolean))
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch categories from server, using defaults:', err)
+    }
+  }
+
+ 
+
+ 
 
   const fetchServices = async () => {
     setIsFetching(true)
@@ -39,16 +76,28 @@ export default function ServicesManager() {
             return (b._id || '').localeCompare(a._id || '')
           })
 
-          const formatted = sorted.map((item, idx) => ({
-            id: item._id || item.id || idx + 1,
-            _id: item._id,
-            number: String(idx + 1).padStart(2, '0'),
-            title: item.title || '',
-            description: item.description || '',
-            image: item.image || item.imageUrl || '',
-            imageFile: null,
-            createdAt: item.createdAt,
-          }))
+          const defaultCategoryMap = ['SUPPLY', 'WHOLESALE', 'COMMERCIAL', 'DISTRIBUTION']
+          const extractedCategories = new Set(categories)
+
+          const formatted = sorted.map((item, idx) => {
+            const rawCat = (item.category || item.tag || '').toString().trim().toUpperCase()
+            const cat = rawCat || defaultCategoryMap[idx % defaultCategoryMap.length] || 'SUPPLY'
+            if (rawCat) extractedCategories.add(rawCat)
+
+            return {
+              id: item._id || item.id || idx + 1,
+              _id: item._id,
+              number: String(idx + 1).padStart(2, '0'),
+              category: cat,
+              title: item.title || '',
+              description: item.description || '',
+              image: item.image || item.imageUrl || '',
+              imageFile: null,
+              createdAt: item.createdAt,
+            }
+          })
+
+          setCategories(Array.from(extractedCategories))
           setServices(formatted)
           setOriginalServices(JSON.parse(JSON.stringify(formatted)))
         } else {
@@ -56,6 +105,7 @@ export default function ServicesManager() {
             {
               id: Date.now(),
               number: '01',
+              category: 'SUPPLY',
               title: '',
               description: '',
               image: '',
@@ -70,6 +120,7 @@ export default function ServicesManager() {
           {
             id: Date.now(),
             number: '01',
+            category: 'SUPPLY',
             title: '',
             description: '',
             image: '',
@@ -90,9 +141,18 @@ export default function ServicesManager() {
   const handleServiceChange = (index, field, value, file = null) => {
     const updated = [...services]
     updated[index][field] = value
+
+    if (field === 'category') {
+      const cleanCat = value.toUpperCase().trim()
+      if (cleanCat && !categories.includes(cleanCat)) {
+        setCategories((prev) => [...prev, cleanCat])
+      }
+    }
+
     if (field === 'image') {
       updated[index].imageFile = file || null
     }
+
     setServices(updated)
     setIsDirty(true)
     setSaved(false)
@@ -100,9 +160,13 @@ export default function ServicesManager() {
   }
 
   const handleAddService = () => {
+    const defaultCategoryMap = ['SUPPLY', 'WHOLESALE', 'COMMERCIAL', 'DISTRIBUTION']
+    const nextCategory = defaultCategoryMap[services.length % defaultCategoryMap.length] || 'SUPPLY'
+
     const newService = {
       id: Date.now(),
-      number: '01',
+      number: String(services.length + 1).padStart(2, '0'),
+      category: nextCategory,
       title: '',
       description: '',
       image: '',
@@ -184,6 +248,10 @@ export default function ServicesManager() {
       const item = services[i]
       const serviceNum = String(i + 1).padStart(2, '0')
 
+      if (!item.category || !item.category.trim()) {
+        setErrorMsg(`Service #${serviceNum} is missing a Category / Tag. Please enter or select a category.`)
+        return
+      }
       if (!item.title || !item.title.trim()) {
         setErrorMsg(`Service #${serviceNum} is missing a Service Title.`)
         return
@@ -224,9 +292,12 @@ export default function ServicesManager() {
 
         const payload = {
           number: String(i + 1).padStart(2, '0'),
+          category: (item.category || 'SUPPLY').trim().toUpperCase(),
+          tag: (item.category || 'SUPPLY').trim().toUpperCase(),
           title: item.title.trim(),
           description: item.description.trim(),
           image: finalImage,
+          order: i,
         }
 
         if (item._id) {
@@ -261,8 +332,8 @@ export default function ServicesManager() {
 
   return (
     <div className="adminContainer space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#DCE6EC] pb-5">
+      {/* Top Header */}
+      <div className="flex flex-col lg:flex-row justify-between lg:items-center items-start gap-4 border-b border-[#DCE6EC] pb-5">
         <div>
           <div className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-gold manrope-extrabold">
             SERVICES SECTION
@@ -275,7 +346,9 @@ export default function ServicesManager() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex justify-end w-full items-center gap-3 flex-wrap">
+          
+
           <button
             type="button"
             onClick={handleAddService}
@@ -307,6 +380,43 @@ export default function ServicesManager() {
         </div>
       </div>
 
+      {/* Category Manager Modal */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white border border-[#DCE6EC] w-full max-w-lg p-6 rounded-[3px] shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-gold manrope-extrabold">
+                  PERSISTENT TAGS
+                </span>
+                <h3 className="font-serif font-bold text-[20px] text-navy">
+                  Service Categories
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCategoryModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-[14px] cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+           
+
+            <div className="pt-2 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowCategoryModal(false)}
+                className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-5 py-2.5 rounded-[2px] cursor-pointer shadow-sm"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {errorMsg && (
         <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-[2px] font-medium">
           ⚠️ {errorMsg}
@@ -336,46 +446,93 @@ export default function ServicesManager() {
               ✕
             </button>
 
-            {/* Header / Number & Title */}
+            {/* Header / Number & Title Preview */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 pr-8">
               <div className="flex items-center gap-3">
-                <span className="font-serif font-bold text-gold text-[22px]">
-                  {String(index + 1).padStart(2, '0')}
+                <span className="text-[12px] font-extrabold tracking-[0.16em] text-gold uppercase manrope-extrabold bg-[#071D33] px-2.5 py-1 rounded-[2px]">
+                  {String(index + 1).padStart(2, '0')} / {service.category || 'SUPPLY'}
                 </span>
-                <h3 className="font-serif font-bold text-[18px] text-navy truncate">
+                <h3 className="font-serif font-bold text-[17px] text-navy truncate max-w-[200px]">
                   {service.title || `Service #${String(index + 1).padStart(2, '0')}`}
                 </h3>
               </div>
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                  SERVICE TITLE *
-                </label>
-                <input
-                  type="text"
-                  value={service.title}
-                  onChange={(e) =>
-                    handleServiceChange(index, 'title', e.target.value)
-                  }
-                  placeholder="e.g. Wholesale Seafood Supply"
-                  className="w-full border border-[#DCE6EC] px-3.5 py-2.5 text-[14px] text-ink outline-none focus:border-[#1976A8] rounded-[2px]"
-                />
+              {/* Category & Title */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="col-span-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                      CATEGORY * 
+                    </label>
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    list={`categories-list-${index}`}
+                    value={service.category || ''}
+                    onChange={(e) =>
+                      handleServiceChange(index, 'category', e.target.value.toUpperCase())
+                    }
+                    placeholder="e.g. SUPPLY"
+                    className={`w-full border px-3 py-2.5 text-[13px] font-bold text-navy uppercase outline-none rounded-[2px] transition-colors ${
+                      !service.category?.trim() ? 'border-amber-300 focus:border-red-500' : 'border-[#DCE6EC] focus:border-[#1976A8]'
+                    }`}
+                  />
+                  <datalist id={`categories-list-${index}`}>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat} />
+                    ))}
+                  </datalist>
+                </div>
+
+                <div className="col-span-2">
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                      SERVICE TITLE *  (MAX 50)
+                    </label>
+                    <span className={`text-[10px] font-mono font-bold ${(service.title || '').length >= 45 ? 'text-amber-600' : 'text-slate-400'}`}>
+                      {(service.title || '').length} / 50
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    maxLength={50}
+                    value={service.title}
+                    onChange={(e) =>
+                      handleServiceChange(index, 'title', e.target.value)
+                    }
+                    placeholder="e.g. Fresh Marine Fish Supply"
+                    className={`w-full border px-3.5 py-2.5 text-[14px] text-ink outline-none rounded-[2px] transition-colors ${
+                      !service.title?.trim() ? 'border-amber-300 focus:border-red-500' : 'border-[#DCE6EC] focus:border-[#1976A8]'
+                    }`}
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                  SERVICE DESCRIPTION *
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+                    SERVICE DESCRIPTION *  (MAX 160 CHARACTERS)
+                  </label>
+                  <span className={`text-[10px] font-mono font-bold ${(service.description || '').length >= 145 ? 'text-amber-600' : 'text-slate-400'}`}>
+                    {(service.description || '').length} / 160
+                  </span>
+                </div>
                 <textarea
                   rows="2"
+                  required
+                  maxLength={160}
                   value={service.description}
                   onChange={(e) =>
                     handleServiceChange(index, 'description', e.target.value)
                   }
-                  placeholder="Describe this service..."
-                  className="w-full border border-[#DCE6EC] px-3.5 py-2.5 text-[14px] text-ink outline-none focus:border-[#1976A8] rounded-[2px]"
+                  placeholder="Describe this service (max 160 characters)..."
+                  className={`w-full border px-3.5 py-2.5 text-[14px] text-ink outline-none rounded-[2px] transition-colors ${
+                    !service.description?.trim() ? 'border-amber-300 focus:border-red-500' : 'border-[#DCE6EC] focus:border-[#1976A8]'
+                  }`}
                 ></textarea>
               </div>
 
