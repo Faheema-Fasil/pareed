@@ -20,33 +20,33 @@ export default function WhyChooseUsManager() {
       const res = await getWhyChooseUsAPI()
       if (res && res.status >= 200 && res.status < 300) {
         const data = res.data?.data || res.data
-        if (Array.isArray(data) && data.length > 0) {
-          setItems(data)
-          setOriginalItems(JSON.parse(JSON.stringify(data)))
-        } else if (data?.items && Array.isArray(data.items)) {
-          setItems(data.items)
-          setOriginalItems(JSON.parse(JSON.stringify(data.items)))
+        const rawList = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.items)
+          ? data.items
+          : null
+
+        if (rawList && rawList.length > 0) {
+          const formatted = rawList.map((item, idx) => ({
+            _id: item._id,
+            number: item.number || String(idx + 1).padStart(2, '0'),
+            title: item.title || '',
+            description: item.description || item.desc || '',
+            order: item.order !== undefined ? item.order : idx,
+          }))
+          setItems(formatted)
+          setOriginalItems(JSON.parse(JSON.stringify(formatted)))
         } else {
           const initial = [
-            { number: '01', title: '', desc: '' },
-            { number: '02', title: '', desc: '' },
-            { number: '03', title: '', desc: '' },
-            { number: '04', title: '', desc: '' },
-            { number: '05', title: '', desc: '' },
+            { number: '01', title: 'Freshness', description: 'Quality-focused sourcing and handling.', order: 0 },
+            { number: '02', title: 'Reliability', description: 'Consistent wholesale supply.', order: 1 },
+            { number: '03', title: 'Quality', description: 'Premium seafood selected with care.', order: 2 },
+            { number: '04', title: 'Flexibility', description: 'Supply solutions based on business requirements.', order: 3 },
+            { number: '05', title: 'Service', description: 'Responsive support from enquiry to delivery.', order: 4 },
           ]
           setItems(initial)
           setOriginalItems(JSON.parse(JSON.stringify(initial)))
         }
-      } else {
-        const initial = [
-          { number: '01', title: '', desc: '' },
-          { number: '02', title: '', desc: '' },
-          { number: '03', title: '', desc: '' },
-          { number: '04', title: '', desc: '' },
-          { number: '05', title: '', desc: '' },
-        ]
-        setItems(initial)
-        setOriginalItems(JSON.parse(JSON.stringify(initial)))
       }
     } catch (err) {
       console.error('Error fetching why us data:', err)
@@ -90,7 +90,7 @@ export default function WhyChooseUsManager() {
         setErrorMsg(`Pillar #${item.number || i + 1} is missing a Title.`)
         return
       }
-      if (!item.desc || !item.desc.trim()) {
+      if (!item.description || !item.description.trim()) {
         setErrorMsg(`Pillar #${item.number || i + 1} (${item.title}) is missing a Description.`)
         return
       }
@@ -99,11 +99,20 @@ export default function WhyChooseUsManager() {
     setLoading(true)
 
     try {
-      const res = await updateWhyChooseUsAPI({ items })
+      const payload = items.map((item, idx) => ({
+        _id: item._id,
+        number: item.number || String(idx + 1).padStart(2, '0'),
+        title: item.title.trim(),
+        description: item.description.trim(),
+        order: item.order !== undefined ? item.order : idx,
+      }))
+
+      const res = await updateWhyChooseUsAPI(payload)
       if (res && res.status >= 200 && res.status < 300) {
         setSaved(true)
         setIsDirty(false)
         setTimeout(() => setSaved(false), 3000)
+        fetchWhyUs()
       } else {
         setErrorMsg(res?.data?.message || 'Failed to save Why Choose Us section.')
       }
@@ -178,7 +187,7 @@ export default function WhyChooseUsManager() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {items.map((item, index) => (
           <div
-            key={item.number || index}
+            key={item._id || item.number || index}
             className="bg-white border border-[#DCE6EC] p-5 rounded-[3px] shadow-xs space-y-3"
           >
             <div className="flex items-center gap-2">
@@ -209,8 +218,8 @@ export default function WhyChooseUsManager() {
               </label>
               <textarea
                 rows="2"
-                value={item.desc}
-                onChange={(e) => handleChange(index, 'desc', e.target.value)}
+                value={item.description}
+                onChange={(e) => handleChange(index, 'description', e.target.value)}
                 className="w-full border border-[#DCE6EC] px-3 py-2 text-[13px] text-ink outline-none focus:border-[#1976A8] rounded-[2px]"
                 placeholder="Describe this pillar..."
               ></textarea>

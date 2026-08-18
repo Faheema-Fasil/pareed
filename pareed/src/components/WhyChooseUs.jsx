@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { getWhyChooseUsAPI } from '../services/functions/whyUsFunctions'
 
-const reasons = [
+const defaultReasons = [
   {
     number: '01',
     title: 'Freshness',
@@ -29,6 +30,38 @@ const reasons = [
 ]
 
 function WhyChooseUs() {
+  const [reasonsList, setReasonsList] = useState(defaultReasons)
+
+  useEffect(() => {
+    fetchReasons()
+  }, [])
+
+  const fetchReasons = async () => {
+    try {
+      const res = await getWhyChooseUsAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        const rawList = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.items)
+          ? data.items
+          : null
+
+        if (rawList && rawList.length > 0) {
+          const sorted = [...rawList].sort((a, b) => (a.order || 0) - (b.order || 0))
+          setReasonsList(
+            sorted.map((item, idx) => ({
+              number: item.number || String(idx + 1).padStart(2, '0'),
+              title: item.title || '',
+              description: item.description || item.desc || '',
+            }))
+          )
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching Why Choose Us on site:', err)
+    }
+  }
   return (
     <section className="bg-navy py-20 md:py-28 text-white overflow-hidden" id="why">
       <div className="container mx-auto">
@@ -53,15 +86,15 @@ function WhyChooseUs() {
 
         {/* 5-Column Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 border-t border-white/20">
-          {reasons.map((item, index) => (
+          {reasonsList.map((item, index) => (
             <div
-              key={item.number}
+              key={item.number || index}
               className={`p-6 sm:p-8 lg:py-[42px] lg:px-[24px] flex flex-col justify-start transition-colors duration-300 hover:bg-white/[0.03] ${
-                index !== reasons.length - 1
+                index !== reasonsList.length - 1
                   ? 'border-b sm:border-b-0 sm:border-r border-white/15'
                   : ''
               } ${
-                index % 2 === 1 && index !== reasons.length - 1
+                index % 2 === 1 && index !== reasonsList.length - 1
                   ? 'lg:border-r border-white/15'
                   : ''
               }`}

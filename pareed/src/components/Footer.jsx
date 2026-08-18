@@ -1,4 +1,8 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { getGeneralSettingsAPI } from '../services/functions/settingFunctions'
+import { getFullImageUrl } from '../Admin/components/common/ImageUploadField'
+
+const defaultLogo = '/PAREED FISH TRADING L.L.C 2026.png'
 
 const quickLinks = [
   { name: 'Home', href: '#home' },
@@ -11,6 +15,37 @@ const quickLinks = [
 ]
 
 function Footer() {
+  const [settings, setSettings] = useState({
+    logoImageUrl: defaultLogo,
+    phone1: '+971 50 181 1875',
+    phone2: '+971 50 602 7334',
+    email: 'info@pareedfishtrading.com',
+    location: 'Waterfront Market',
+    cityCountry: 'Dubai, United Arab Emirates',
+  })
+
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      const res = await getGeneralSettingsAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (data && typeof data === 'object') {
+          setSettings((prev) => ({
+            ...prev,
+            ...data,
+            logoImageUrl: data.logoImageUrl ? getFullImageUrl(data.logoImageUrl) : defaultLogo,
+          }))
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching settings in Footer:', err)
+    }
+  }
+
   return (
     <footer className="bg-[#071D33] text-white pt-16 sm:pt-[70px] pb-8 sm:pb-[25px] overflow-hidden">
       <div className="container mx-auto">
@@ -21,9 +56,12 @@ function Footer() {
           {/* Brand Info */}
           <div>
             <img
-              src="/PAREED FISH TRADING L.L.C 2026.png"
+              src={settings.logoImageUrl || defaultLogo}
               alt="Pareed Fish Trading Logo"
               className="h-12 w-auto max-w-[200px] object-contain mb-3"
+              onError={(e) => {
+                e.target.src = defaultLogo
+              }}
             />
             <p className="text-[#C8D6DF] text-[13px] leading-[2] mt-4 max-w-[320px]">
               Fresh &amp; Premium Seafood Wholesale
@@ -55,23 +93,29 @@ function Footer() {
               CONTACT
             </h3>
             <div className="text-[#C8D6DF] text-[13px] leading-[2.1] space-y-0.5">
-              <p>
-                <a href="tel:+971501811875" className="hover:text-gold transition-colors">
-                  +971 50 181 1875
-                </a>
-              </p>
-              <p>
-                <a href="tel:+971506027334" className="hover:text-gold transition-colors">
-                  +971 50 602 7334
-                </a>
-              </p>
-              <p>
-                <a href="mailto:info@pareedfishtrading.com" className="hover:text-gold transition-colors">
-                  info@pareedfishtrading.com
-                </a>
-              </p>
-              <p>Waterfront Market</p>
-              <p>Dubai, United Arab Emirates</p>
+              {settings.phone1 && (
+                <p>
+                  <a href={`tel:${settings.phone1}`} className="hover:text-gold transition-colors font-mono">
+                    {settings.phone1}
+                  </a>
+                </p>
+              )}
+              {settings.phone2 && (
+                <p>
+                  <a href={`tel:${settings.phone2}`} className="hover:text-gold transition-colors font-mono">
+                    {settings.phone2}
+                  </a>
+                </p>
+              )}
+              {settings.email && (
+                <p>
+                  <a href={`mailto:${settings.email}`} className="hover:text-gold transition-colors">
+                    {settings.email}
+                  </a>
+                </p>
+              )}
+              {settings.location && <p>{settings.location}</p>}
+              {settings.cityCountry && <p>{settings.cityCountry}</p>}
             </div>
           </div>
 

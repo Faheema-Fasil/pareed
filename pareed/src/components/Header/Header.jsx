@@ -1,9 +1,32 @@
 import React, { useEffect, useState } from 'react'
 import MenuLink from './Common/MenuLink'
+import { getGeneralSettingsAPI } from '../../services/functions/settingFunctions'
+import { getFullImageUrl } from '../../Admin/components/common/ImageUploadField'
+
+const defaultLogo = '/PAREED FISH TRADING L.L.C 2026.png'
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [logoUrl, setLogoUrl] = useState(defaultLogo)
+
+  useEffect(() => {
+    fetchLogo()
+  }, [])
+
+  const fetchLogo = async () => {
+    try {
+      const res = await getGeneralSettingsAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (data?.logoImageUrl) {
+          setLogoUrl(getFullImageUrl(data.logoImageUrl))
+        }
+      }
+    } catch (err) {
+      console.error('Error loading logo in Header:', err)
+    }
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,9 +66,12 @@ function Header() {
           {/* Logo */}
           <a href="#home" className="flex items-center gap-2 shrink-0">
             <img
-              src="/PAREED FISH TRADING L.L.C 2026.png"
+              src={logoUrl || defaultLogo}
               alt="Pareed Fish Trading"
               className="h-11 sm:h-13 w-auto max-w-[220px] object-contain"
+              onError={(e) => {
+                e.target.src = defaultLogo
+              }}
             />
           </a>
 
