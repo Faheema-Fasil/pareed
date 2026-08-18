@@ -1,5 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ImageUploadField from '../components/common/ImageUploadField'
+import {
+  getAllServicesAPI,
+  addServiceAPI,
+  updateServiceAPI,
+  deleteServiceAPI,
+} from '../../services/functions/serviceFunctions'
 
 export default function ServicesManager() {
   const [services, setServices] = useState([
@@ -30,6 +36,35 @@ export default function ServicesManager() {
   ])
 
   const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+
+  useEffect(() => {
+    fetchServices()
+  }, [])
+
+  const fetchServices = async () => {
+    try {
+      const res = await getAllServicesAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (Array.isArray(data) && data.length > 0) {
+          setServices(
+            data.map((item, idx) => ({
+              id: item._id || item.id || idx + 1,
+              _id: item._id,
+              number: item.number || String(idx + 1).padStart(2, '0'),
+              title: item.title || '',
+              description: item.description || '',
+              image: item.image || item.imageUrl || '',
+            }))
+          )
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching services:', err)
+    }
+  }
 
   const handleServiceChange = (index, field, value) => {
     const updated = [...services]
@@ -51,19 +86,51 @@ export default function ServicesManager() {
     setSaved(false)
   }
 
-  const handleRemoveService = (id) => {
+  const handleRemoveService = async (service) => {
     if (services.length <= 1) {
       alert('You must have at least one service.')
       return
     }
-    setServices(services.filter((s) => s.id !== id))
+
+    if (service._id) {
+      try {
+        await deleteServiceAPI(service._id)
+      } catch (err) {
+        console.error('Error deleting service:', err)
+      }
+    }
+
+    setServices(services.filter((s) => s.id !== service.id && s._id !== service._id))
     setSaved(false)
   }
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault()
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    setLoading(true)
+    setErrorMsg('')
+    try {
+      for (const item of services) {
+        const payload = {
+          number: item.number,
+          title: item.title,
+          description: item.description,
+          image: item.image,
+        }
+        if (item._id) {
+          await updateServiceAPI(item._id, payload)
+        } else {
+          await addServiceAPI(payload)
+        }
+      }
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+      fetchServices()
+    } catch (err) {
+      console.error('Error saving services:', err)
+      setErrorMsg('Failed to save some services to server.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -95,12 +162,19 @@ export default function ServicesManager() {
           <button
             type="button"
             onClick={handleSave}
-            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm"
+            disabled={loading}
+            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
           >
-            {saved ? 'Changes Saved ✓' : 'Save Changes'}
+            {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
           </button>
         </div>
       </div>
+
+      {errorMsg && (
+        <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-[2px] font-medium">
+          ⚠️ {errorMsg}
+        </div>
+      )}
 
       {saved && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] rounded-[2px] font-medium">
@@ -112,13 +186,13 @@ export default function ServicesManager() {
       <div className="space-y-6 grid grid-cols-1 lg:grid-cols-2  gap-6">
         {services.map((service, index) => (
           <div
-            key={service.id}
+            key={service.id || index}
             className="bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4 relative group"
           >
             {/* Remove Service Button */}
             <button
               type="button"
-              onClick={() => handleRemoveService(service.id)}
+              onClick={() => handleRemoveService(service)}
               className="absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center text-[12px] transition-colors cursor-pointer"
               title="Remove this service"
             >

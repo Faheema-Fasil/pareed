@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ImageUploadField from '../components/common/ImageUploadField'
+import { getGeneralSettingsAPI, updateGeneralSettingsAPI } from '../../services/functions/settingFunctions'
 
 export default function GeneralSettings() {
   const [settings, setSettings] = useState({
@@ -12,6 +13,29 @@ export default function GeneralSettings() {
   })
 
   const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      const res = await getGeneralSettingsAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (data && typeof data === 'object') {
+          setSettings((prev) => ({
+            ...prev,
+            ...data,
+          }))
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching settings:', err)
+    }
+  }
 
   const handleChange = (e) => {
     setSettings({
@@ -29,10 +53,24 @@ export default function GeneralSettings() {
     setSaved(false)
   }
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault()
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    setLoading(true)
+    setErrorMsg('')
+    try {
+      const res = await updateGeneralSettingsAPI(settings)
+      if (res && res.status >= 200 && res.status < 300) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+      } else {
+        setErrorMsg(res?.data?.message || 'Failed to save settings. Please check server.')
+      }
+    } catch (err) {
+      console.error('Error saving settings:', err)
+      setErrorMsg('Network error while saving settings')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -52,11 +90,18 @@ export default function GeneralSettings() {
 
         <button
           onClick={handleSave}
-          className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm"
+          disabled={loading}
+          className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
         >
-          {saved ? 'Changes Saved ✓' : 'Save Changes'}
+          {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
         </button>
       </div>
+
+      {errorMsg && (
+        <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-[2px] font-medium">
+          ⚠️ {errorMsg}
+        </div>
+      )}
 
       {saved && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] rounded-[2px] font-medium">

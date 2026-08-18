@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { forgotPasswordAPI } from '../../../services/functions/userFunctions'
 
 function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -7,7 +8,7 @@ function ForgotPassword() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError('Please enter a valid email address')
@@ -16,10 +17,15 @@ function ForgotPassword() {
     setError('')
     setIsLoading(true)
 
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      await forgotPasswordAPI({ email })
       setIsSubmitted(true)
-    }, 800)
+    } catch (err) {
+      console.error('Forgot password error:', err)
+      setIsSubmitted(true)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -28,9 +34,11 @@ function ForgotPassword() {
         
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 border border-gold/80 rounded-full flex items-center justify-center text-gold font-serif text-[28px] font-bold mx-auto mb-4 bg-navy/5">
-            P
-          </div>
+          <img
+            src="/PAREED FISH TRADING L.L.C 2026.png"
+            alt="Pareed Logo"
+            className="h-12 w-auto mx-auto mb-4 object-contain"
+          />
           <h1 className="font-serif cormorant-garamond-extrabold text-[32px] font-semibold text-navy leading-tight">
             Forgot Password
           </h1>

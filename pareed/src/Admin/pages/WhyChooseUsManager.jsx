@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { getWhyChooseUsAPI, updateWhyChooseUsAPI } from '../../services/functions/whyUsFunctions'
 
 export default function WhyChooseUsManager() {
   const [items, setItems] = useState([
@@ -10,6 +11,28 @@ export default function WhyChooseUsManager() {
   ])
 
   const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+
+  useEffect(() => {
+    fetchWhyUs()
+  }, [])
+
+  const fetchWhyUs = async () => {
+    try {
+      const res = await getWhyChooseUsAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (Array.isArray(data) && data.length > 0) {
+          setItems(data)
+        } else if (data?.items && Array.isArray(data.items)) {
+          setItems(data.items)
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching why us data:', err)
+    }
+  }
 
   const handleChange = (index, field, value) => {
     const updated = [...items]
@@ -18,10 +41,24 @@ export default function WhyChooseUsManager() {
     setSaved(false)
   }
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault()
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    setLoading(true)
+    setErrorMsg('')
+    try {
+      const res = await updateWhyChooseUsAPI({ items })
+      if (res && res.status >= 200 && res.status < 300) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+      } else {
+        setErrorMsg(res?.data?.message || 'Failed to save Why Choose Us section.')
+      }
+    } catch (err) {
+      console.error('Error saving why us:', err)
+      setErrorMsg('Network error while saving.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -41,11 +78,18 @@ export default function WhyChooseUsManager() {
 
         <button
           onClick={handleSave}
-          className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm"
+          disabled={loading}
+          className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
         >
-          {saved ? 'Changes Saved ✓' : 'Save Changes'}
+          {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
         </button>
       </div>
+
+      {errorMsg && (
+        <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-[2px] font-medium">
+          ⚠️ {errorMsg}
+        </div>
+      )}
 
       {saved && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] rounded-[2px] font-medium">

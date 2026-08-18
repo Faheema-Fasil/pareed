@@ -5,6 +5,7 @@ import InputField from './common/InputField'
 import SelectField from './common/SelectField'
 import TextAreaField from './common/TextAreaField'
 import PhoneInputField from './common/PhoneInputField'
+import { submitInquiryAPI } from '../services/functions/inquiryFunctions'
 
 const businessOptions = [
   'Restaurant',
@@ -26,6 +27,7 @@ const requirementOptions = [
 
 export default function ContactSection() {
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [selectedCountry, setSelectedCountry] = useState('AE')
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef(null)
@@ -159,7 +161,7 @@ export default function ContactSection() {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const formErrors = validate()
 
@@ -169,7 +171,25 @@ export default function ContactSection() {
     }
 
     setErrors({})
-    setIsSubmitted(true)
+    setLoading(true)
+
+    try {
+      await submitInquiryAPI(formData)
+    } catch (err) {
+      console.error('Error submitting inquiry to server:', err)
+    } finally {
+      setLoading(false)
+      setIsSubmitted(true)
+      setFormData({
+        name: '',
+        company: '',
+        phone: '',
+        email: '',
+        business: '',
+        requirement: '',
+        message: '',
+      })
+    }
   }
 
   return (

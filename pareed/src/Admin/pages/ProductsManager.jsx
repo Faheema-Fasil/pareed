@@ -1,5 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ImageUploadField from '../components/common/ImageUploadField'
+import {
+  getAllProductsAPI,
+  addProductAPI,
+  updateProductAPI,
+  deleteProductAPI,
+} from '../../services/functions/productFunctions'
 
 export default function ProductsManager() {
   const [products, setProducts] = useState([
@@ -56,6 +62,36 @@ export default function ProductsManager() {
   ])
 
   const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const fetchProducts = async () => {
+    try {
+      const res = await getAllProductsAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(
+            data.map((item, idx) => ({
+              id: item._id || item.id || idx + 1,
+              _id: item._id,
+              number: item.number || String(idx + 1).padStart(2, '0'),
+              name: item.name || '',
+              sub: item.sub || item.subtitle || '',
+              description: item.description || '',
+              image: item.image || item.imageUrl || '',
+            }))
+          )
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching products:', err)
+    }
+  }
 
   const handleProductChange = (index, field, value) => {
     const updated = [...products]
@@ -78,19 +114,53 @@ export default function ProductsManager() {
     setSaved(false)
   }
 
-  const handleRemoveProduct = (id) => {
+  const handleRemoveProduct = async (product) => {
     if (products.length <= 1) {
       alert('You must have at least one product in your catalog.')
       return
     }
-    setProducts(products.filter((p) => p.id !== id))
+
+    if (product._id) {
+      try {
+        await deleteProductAPI(product._id)
+      } catch (err) {
+        console.error('Error deleting product:', err)
+      }
+    }
+
+    setProducts(products.filter((p) => p.id !== product.id && p._id !== product._id))
     setSaved(false)
   }
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault()
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    setLoading(true)
+    setErrorMsg('')
+    try {
+      // Save all products via add / update API
+      for (const item of products) {
+        const payload = {
+          number: item.number,
+          name: item.name,
+          sub: item.sub,
+          description: item.description,
+          image: item.image,
+        }
+        if (item._id) {
+          await updateProductAPI(item._id, payload)
+        } else {
+          await addProductAPI(payload)
+        }
+      }
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+      fetchProducts()
+    } catch (err) {
+      console.error('Error saving products:', err)
+      setErrorMsg('Failed to save some products to server.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -122,12 +192,19 @@ export default function ProductsManager() {
           <button
             type="button"
             onClick={handleSave}
-            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm"
+            disabled={loading}
+            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
           >
-            {saved ? 'Changes Saved ✓' : 'Save Changes'}
+            {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
           </button>
         </div>
       </div>
+
+      {errorMsg && (
+        <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-[2px] font-medium">
+          ⚠️ {errorMsg}
+        </div>
+      )}
 
       {saved && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] rounded-[2px] font-medium">
@@ -139,13 +216,13 @@ export default function ProductsManager() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {products.map((product, index) => (
           <div
-            key={product.id}
+            key={product.id || index}
             className="bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4 relative group"
           >
             {/* Remove Product Button */}
             <button
               type="button"
-              onClick={() => handleRemoveProduct(product.id)}
+              onClick={() => handleRemoveProduct(product)}
               className="absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center text-[12px] transition-colors cursor-pointer"
               title="Remove this product"
             >

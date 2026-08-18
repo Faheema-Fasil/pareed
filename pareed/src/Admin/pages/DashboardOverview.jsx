@@ -1,18 +1,79 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { getDashboardStatsAPI } from '../../services/functions/dashboardFunctions'
+import { getAllInquiriesAPI } from '../../services/functions/inquiryFunctions'
 
 export default function DashboardOverview() {
-  const stats = [
-    { title: 'Products Listed', value: '5 Items', to: '/admin/dashboard/products', color: 'border-blue-500' },
-    { title: 'Active Services', value: '3 Services', to: '/admin/dashboard/services', color: 'border-gold' },
-    { title: 'Team Members', value: '3 People', to: '/admin/dashboard/team', color: 'border-emerald-500' },
-    { title: 'New Enquiries', value: '3 Leads', to: '/admin/dashboard/inquiries', color: 'border-purple-500', highlight: true },
-  ]
+  const [statsData, setStatsData] = useState({
+    productsCount: 5,
+    servicesCount: 3,
+    teamCount: 3,
+    inquiriesCount: 3,
+  })
 
-  const recentInquiries = [
+  const [recentInquiries, setRecentInquiries] = useState([
     { name: 'Rashid Al Nuaimi', company: 'Emirates Seafood Grill', phone: '+971 50 123 4567', requirement: 'Fresh Fish', date: 'Just now' },
     { name: 'Sarah Jenkins', company: 'Marina Bistro', phone: '+971 55 987 6543', requirement: 'Bulk Order', date: '2 hours ago' },
     { name: 'Mohammed Tariq', company: 'Prime Supermarket LLC', phone: '+971 52 444 8899', requirement: 'Regular Supply', date: 'Yesterday' },
+  ])
+
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  const fetchStats = async () => {
+    try {
+      const res = await getDashboardStatsAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (data) {
+          setStatsData({
+            productsCount: data.productsCount ?? data.products ?? 5,
+            servicesCount: data.servicesCount ?? data.services ?? 3,
+            teamCount: data.teamCount ?? data.team ?? 3,
+            inquiriesCount: data.inquiriesCount ?? data.inquiries ?? data.newInquiries ?? 3,
+          })
+          if (Array.isArray(data.recentInquiries) && data.recentInquiries.length > 0) {
+            setRecentInquiries(
+              data.recentInquiries.map((inq) => ({
+                name: inq.name || '',
+                company: inq.company || '',
+                phone: inq.phone || '',
+                requirement: inq.requirement || '',
+                date: inq.createdAt ? new Date(inq.createdAt).toLocaleDateString() : 'Recent',
+              }))
+            )
+          }
+        }
+      } else {
+        // Fallback: Fetch inquiries directly
+        const inqRes = await getAllInquiriesAPI()
+        if (inqRes && inqRes.status >= 200 && inqRes.status < 300) {
+          const inqs = inqRes.data?.data || inqRes.data
+          if (Array.isArray(inqs)) {
+            setStatsData((prev) => ({ ...prev, inquiriesCount: inqs.length }))
+            setRecentInquiries(
+              inqs.slice(0, 5).map((inq) => ({
+                name: inq.name || '',
+                company: inq.company || '',
+                phone: inq.phone || '',
+                requirement: inq.requirement || '',
+                date: inq.createdAt ? new Date(inq.createdAt).toLocaleDateString() : 'Recent',
+              }))
+            )
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching dashboard stats:', err)
+    }
+  }
+
+  const stats = [
+    { title: 'Products Listed', value: `${statsData.productsCount} Items`, to: '/admin/dashboard/products', color: 'border-blue-500' },
+    { title: 'Active Services', value: `${statsData.servicesCount} Services`, to: '/admin/dashboard/services', color: 'border-gold' },
+    { title: 'Team Members', value: `${statsData.teamCount} People`, to: '/admin/dashboard/team', color: 'border-emerald-500' },
+    { title: 'New Enquiries', value: `${statsData.inquiriesCount} Leads`, to: '/admin/dashboard/inquiries', color: 'border-purple-500', highlight: true },
   ]
 
   return (

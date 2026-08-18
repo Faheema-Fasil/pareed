@@ -1,4 +1,6 @@
 import React, { useRef, useState } from 'react'
+import { uploadImageAPI } from '../../../services/functions/uploadFunctions'
+import { SERVER_URL } from '../../../services/server_url'
 
 export default function ImageUploadField({
   label = 'UPLOAD IMAGE',
@@ -9,14 +11,39 @@ export default function ImageUploadField({
   const fileInputRef = useRef(null)
   const [dragActive, setDragActive] = useState(false)
   const [isUrlMode, setIsUrlMode] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
-  const handleFile = (file) => {
+  const handleFile = async (file) => {
     if (!file || !file.type.startsWith('image/')) return
+
+    // Show instant preview
     const reader = new FileReader()
     reader.onload = (e) => {
       onChange(e.target.result)
     }
     reader.readAsDataURL(file)
+
+    // Attempt backend upload
+    try {
+      setUploading(true)
+      const formData = new FormData()
+      formData.append('image', file)
+      formData.append('file', file)
+      const res = await uploadImageAPI(formData)
+      if (res && res.status >= 200 && res.status < 300) {
+        const uploadedUrl =
+          res.data?.imageUrl ||
+          res.data?.url ||
+          (res.data?.filename ? `${SERVER_URL}/uploads/${res.data.filename}` : null)
+        if (uploadedUrl) {
+          onChange(uploadedUrl)
+        }
+      }
+    } catch (err) {
+      console.warn('Backend image upload skipped or failed, using local preview data:', err)
+    } finally {
+      setUploading(false)
+    }
   }
 
   const handleFileChange = (e) => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { loginUserAPI } from '../../../services/functions/userFunctions'
 
 function LogIn() {
   const navigate = useNavigate()
@@ -10,6 +11,7 @@ function LogIn() {
     password: '',
   })
   const [errors, setErrors] = useState({})
+  const [serverError, setServerError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleChange = (e) => {
@@ -21,9 +23,10 @@ function LogIn() {
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }))
     }
+    setServerError('')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = {}
 
@@ -43,13 +46,33 @@ function LogIn() {
     }
 
     setErrors({})
+    setServerError('')
     setIsLoading(true)
 
-    // Simulate login success
-    setTimeout(() => {
+    try {
+      const res = await loginUserAPI({
+        email: formData.email,
+        password: formData.password,
+      })
+
+      if (res && res.status >= 200 && res.status < 300) {
+        const token = res.data?.data?.token || res.data?.token
+        if (token) {
+          localStorage.setItem('token', token)
+          if (rememberMe) {
+            localStorage.setItem('rememberAdmin', 'true')
+          }
+        }
+        navigate('/admin/dashboard')
+      } else {
+        setServerError(res?.data?.message || 'Invalid email or password.')
+      }
+    } catch (err) {
+      console.error('Login error:', err)
+      setServerError('Unable to connect to server. Please try again.')
+    } finally {
       setIsLoading(false)
-      navigate('/admin/dashboard')
-    }, 600)
+    }
   }
 
   return (
@@ -59,9 +82,11 @@ function LogIn() {
         
         {/* Card Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 border border-gold/80 rounded-full flex items-center justify-center text-gold font-serif text-[28px] font-bold mx-auto mb-4 bg-navy/5">
-            P
-          </div>
+          <img
+            src="/PAREED FISH TRADING L.L.C 2026.png"
+            alt="Pareed Logo"
+            className="h-12 w-auto mx-auto mb-4 object-contain"
+          />
           <h1 className="font-serif cormorant-garamond-extrabold text-[32px] font-semibold text-navy leading-tight">
             Admin Sign In
           </h1>
@@ -69,6 +94,12 @@ function LogIn() {
             Enter your credentials to access the management portal.
           </p>
         </div>
+
+        {serverError && (
+          <div className="mb-5 p-3 bg-red-50 border border-red-200 text-red-700 text-[12px] rounded-[2px] font-medium text-center">
+            ⚠️ {serverError}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} noValidate className="space-y-5">

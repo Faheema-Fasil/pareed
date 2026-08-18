@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import { getAllProductsAPI } from '../services/functions/productFunctions'
 
-const products = [
+const defaultProducts = [
   {
     number: '01',
     label: '01 / 05',
@@ -54,8 +55,37 @@ const products = [
 ]
 
 function OurProducts() {
+  const [productsList, setProductsList] = useState(defaultProducts)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const fetchProducts = async () => {
+    try {
+      const res = await getAllProductsAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (Array.isArray(data) && data.length > 0) {
+          const totalCount = data.length
+          setProductsList(
+            data.map((item, idx) => ({
+              number: item.number || String(idx + 1).padStart(2, '0'),
+              label: `${String(idx + 1).padStart(2, '0')} / ${String(totalCount).padStart(2, '0')}`,
+              name: item.name || '',
+              sub: item.sub || item.subtitle || '',
+              description: item.description || '',
+              image: item.image || item.imageUrl || '',
+            }))
+          )
+        }
+      }
+    } catch (err) {
+      console.error('Error loading products on site:', err)
+    }
+  }
 
   useEffect(() => {
     const handleResize = () => {
@@ -66,7 +96,7 @@ function OurProducts() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const count = products.length
+  const count = productsList.length
   const maxIndex = isMobile ? count - 1 : count - 2
 
   const move = (dir) => {
@@ -111,7 +141,7 @@ function OurProducts() {
                 : `translateX(calc(-${currentIndex} * (50% + 10px)))`,
             }}
           >
-            {products.map((product) => (
+            {productsList.map((product) => (
               <article
                 key={product.number}
                 className="w-full md:w-[calc(50%-10px)] grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr] bg-[#F7F9FA] min-h-[470px] flex-shrink-0 overflow-hidden"

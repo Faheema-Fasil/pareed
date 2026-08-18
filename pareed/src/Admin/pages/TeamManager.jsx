@@ -1,5 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ImageUploadField from '../components/common/ImageUploadField'
+import {
+  getAllTeamAPI,
+  addTeamMemberAPI,
+  updateTeamMemberAPI,
+  deleteTeamMemberAPI,
+} from '../../services/functions/teamFunctions'
 
 export default function TeamManager() {
   const [members, setMembers] = useState([
@@ -27,6 +33,35 @@ export default function TeamManager() {
   ])
 
   const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+
+  useEffect(() => {
+    fetchTeam()
+  }, [])
+
+  const fetchTeam = async () => {
+    try {
+      const res = await getAllTeamAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (Array.isArray(data) && data.length > 0) {
+          setMembers(
+            data.map((item, idx) => ({
+              id: item._id || item.id || idx + 1,
+              _id: item._id,
+              name: item.name || '',
+              role: item.role || item.designation || 'EXECUTIVE',
+              initials: item.initials || 'PK',
+              photo: item.photo || item.imageUrl || '',
+            }))
+          )
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching team:', err)
+    }
+  }
 
   const handleChange = (index, field, value) => {
     const updated = [...members]
@@ -62,19 +97,51 @@ export default function TeamManager() {
     setSaved(false)
   }
 
-  const handleRemoveMember = (id) => {
+  const handleRemoveMember = async (member) => {
     if (members.length <= 1) {
       alert('You must have at least one team member.')
       return
     }
-    setMembers(members.filter((m) => m.id !== id))
+
+    if (member._id) {
+      try {
+        await deleteTeamMemberAPI(member._id)
+      } catch (err) {
+        console.error('Error deleting team member:', err)
+      }
+    }
+
+    setMembers(members.filter((m) => m.id !== member.id && m._id !== member._id))
     setSaved(false)
   }
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault()
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    setLoading(true)
+    setErrorMsg('')
+    try {
+      for (const item of members) {
+        const payload = {
+          name: item.name,
+          role: item.role,
+          initials: item.initials,
+          photo: item.photo,
+        }
+        if (item._id) {
+          await updateTeamMemberAPI(item._id, payload)
+        } else {
+          await addTeamMemberAPI(payload)
+        }
+      }
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+      fetchTeam()
+    } catch (err) {
+      console.error('Error saving team:', err)
+      setErrorMsg('Failed to save some team members to server.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -106,12 +173,19 @@ export default function TeamManager() {
           <button
             type="button"
             onClick={handleSave}
-            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm"
+            disabled={loading}
+            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
           >
-            {saved ? 'Changes Saved ✓' : 'Save Changes'}
+            {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
           </button>
         </div>
       </div>
+
+      {errorMsg && (
+        <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-[2px] font-medium">
+          ⚠️ {errorMsg}
+        </div>
+      )}
 
       {saved && (
         <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] rounded-[2px] font-medium">
@@ -123,13 +197,13 @@ export default function TeamManager() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {members.map((member, index) => (
           <div
-            key={member.id}
+            key={member.id || index}
             className="bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4 relative group"
           >
             {/* Remove Button */}
             <button
               type="button"
-              onClick={() => handleRemoveMember(member.id)}
+              onClick={() => handleRemoveMember(member)}
               className="absolute top-3 right-3 w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center text-[12px] transition-colors cursor-pointer z-10"
               title="Remove member"
             >

@@ -1,4 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import {
+  getAllInquiriesAPI,
+  updateInquiryStatusAPI,
+  deleteInquiryAPI,
+} from '../../services/functions/inquiryFunctions'
 
 export default function ContactInquiries() {
   const [inquiries, setInquiries] = useState([
@@ -40,7 +45,57 @@ export default function ContactInquiries() {
     },
   ])
 
-  const [selectedLead, setSelectedLead] = useState(inquiries[0])
+  const [selectedLead, setSelectedLead] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    fetchInquiries()
+  }, [])
+
+  const fetchInquiries = async () => {
+    setLoading(true)
+    try {
+      const res = await getAllInquiriesAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (Array.isArray(data) && data.length > 0) {
+          const formatted = data.map((item, idx) => ({
+            id: item._id || item.id || idx + 1,
+            _id: item._id,
+            name: item.name || '',
+            company: item.company || '',
+            phone: item.phone || '',
+            email: item.email || '',
+            business: item.business || '',
+            requirement: item.requirement || '',
+            message: item.message || '',
+            date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recent',
+            status: item.status || 'New',
+          }))
+          setInquiries(formatted)
+          setSelectedLead(formatted[0])
+          return
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching inquiries:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDeleteLead = async (lead) => {
+    if (lead._id) {
+      try {
+        await deleteInquiryAPI(lead._id)
+      } catch (err) {
+        console.error('Error deleting inquiry:', err)
+      }
+    }
+    const updated = inquiries.filter((item) => item.id !== lead.id && item._id !== lead._id)
+    setInquiries(updated)
+    setSelectedLead(updated[0] || null)
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -150,19 +205,26 @@ export default function ContactInquiries() {
                 </div>
               </div>
 
-              <div className="pt-2 flex gap-2">
+              <div className="pt-2 flex gap-2 flex-wrap">
                 <a
                   href={`tel:${selectedLead.phone}`}
-                  className="flex-1 text-center bg-gold text-white font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider"
+                  className="flex-1 min-w-[100px] text-center bg-gold text-white font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider"
                 >
                   Call Lead
                 </a>
                 <a
                   href={`mailto:${selectedLead.email}`}
-                  className="flex-1 text-center border border-navy text-navy font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider hover:bg-navy hover:text-white transition-colors"
+                  className="flex-1 min-w-[100px] text-center border border-navy text-navy font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider hover:bg-navy hover:text-white transition-colors"
                 >
                   Send Email
                 </a>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteLead(selectedLead)}
+                  className="text-red-500 hover:bg-red-50 border border-red-200 px-3 py-2.5 rounded-[2px] text-[11px] font-bold uppercase transition-colors cursor-pointer"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           ) : (
