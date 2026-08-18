@@ -1,58 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { getAllProductsAPI } from '../services/functions/productFunctions'
+import { getFullImageUrl } from '../Admin/components/common/ImageUploadField'
 
-const defaultProducts = [
-  {
-    number: '01',
-    label: '01 / 05',
-    name: 'King Fish',
-    sub: 'Seer Fish',
-    description:
-      'Premium quality king fish presented in a clean chilled setting, suitable for commercial seafood supply.',
-    image:
-      'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    number: '02',
-    label: '02 / 05',
-    name: 'Hamour',
-    sub: 'Grouper / Reef Cod',
-    description:
-      'Popular local favorite valued for white, flaky meat and mild flavor across restaurants and hotels.',
-    image:
-      'https://images.unsplash.com/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    number: '03',
-    label: '03 / 05',
-    name: 'White Pomfret',
-    sub: 'Silver Pomfret',
-    description:
-      'Highly sought-after commercial fish known for tender texture, exquisite freshness and delicate taste.',
-    image:
-      'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    number: '04',
-    label: '04 / 05',
-    name: 'Tiger Prawns',
-    sub: 'Jumbo Prawns',
-    description:
-      'Freshly harvested, sorted and graded tiger prawns ideal for bulk commercial buyers and caterers.',
-    image:
-      'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    number: '05',
-    label: '05 / 05',
-    name: 'Atlantic Salmon',
-    sub: 'Fresh Chilled Salmon',
-    description:
-      'Premium whole and cut salmon chilled under strict temperature standards for restaurants and retail.',
-    image:
-      'https://images.unsplash.com/photo-1559737558-2f5a35f4523b?auto=format&fit=crop&w=900&q=80',
-  },
-]
+const defaultProducts = []
 
 function OurProducts() {
   const [productsList, setProductsList] = useState(defaultProducts)
@@ -69,9 +19,17 @@ function OurProducts() {
       if (res && res.status >= 200 && res.status < 300) {
         const data = res.data?.data || res.data
         if (Array.isArray(data) && data.length > 0) {
-          const totalCount = data.length
+          // Sort latest created first
+          const sorted = [...data].sort((a, b) => {
+            if (a.createdAt && b.createdAt) {
+              return new Date(b.createdAt) - new Date(a.createdAt)
+            }
+            return (b._id || '').localeCompare(a._id || '')
+          })
+
+          const totalCount = sorted.length
           setProductsList(
-            data.map((item, idx) => ({
+            sorted.map((item, idx) => ({
               number: item.number || String(idx + 1).padStart(2, '0'),
               label: `${String(idx + 1).padStart(2, '0')} / ${String(totalCount).padStart(2, '0')}`,
               name: item.name || '',
@@ -97,9 +55,10 @@ function OurProducts() {
   }, [])
 
   const count = productsList.length
-  const maxIndex = isMobile ? count - 1 : count - 2
+  const maxIndex = isMobile ? Math.max(0, count - 1) : Math.max(0, count - 2)
 
   const move = (dir) => {
+    if (count <= 1) return
     setCurrentIndex((prev) => {
       const next = prev + dir
       if (next < 0) return maxIndex
@@ -126,8 +85,7 @@ function OurProducts() {
           </div>
           <p className="max-w-[500px] text-[#647483] text-[15px] sm:text-[16px] leading-[1.8]">
             Explore selected seafood products supplied by Pareed Fish Trading.
-            Product photography below is used as a visual reference for the prototype
-            and should be replaced with properly licensed/client-owned imagery before production.
+            Carefully graded and temperature-controlled for wholesale, restaurant, and supermarket buyers.
           </p>
         </div>
 
@@ -141,15 +99,15 @@ function OurProducts() {
                 : `translateX(calc(-${currentIndex} * (50% + 10px)))`,
             }}
           >
-            {productsList.map((product) => (
+            {productsList.map((product, pIdx) => (
               <article
-                key={product.number}
+                key={product.number || pIdx}
                 className="w-full md:w-[calc(50%-10px)] grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr] bg-[#F7F9FA] min-h-[470px] flex-shrink-0 overflow-hidden"
               >
                 {/* Product Image */}
                 <div className="h-[280px] md:h-full relative overflow-hidden bg-navy">
                   <img
-                    src={product.image}
+                    src={getFullImageUrl(product.image)}
                     alt={product.name}
                     className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-700 ease-out"
                     loading="lazy"
@@ -189,7 +147,7 @@ function OurProducts() {
         {/* Slider Controls */}
         <div className="flex justify-between items-center mt-[22px]">
           <div className="text-[13px] font-extrabold tracking-[0.15em] text-navy">
-            {String(currentIndex + 1).padStart(2, '0')} / 05
+            {String(currentIndex + 1).padStart(2, '0')} / {String(productsList.length).padStart(2, '0')}
           </div>
 
           <div className="flex gap-[8px]">

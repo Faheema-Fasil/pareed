@@ -161,6 +161,8 @@ export default function ContactSection() {
     }
   }
 
+  const [submitError, setSubmitError] = useState('')
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const formErrors = validate()
@@ -171,24 +173,31 @@ export default function ContactSection() {
     }
 
     setErrors({})
+    setSubmitError('')
     setLoading(true)
 
     try {
-      await submitInquiryAPI(formData)
+      const res = await submitInquiryAPI(formData)
+      if (res && res.status >= 200 && res.status < 300) {
+        setIsSubmitted(true)
+        setFormData({
+          name: '',
+          company: '',
+          phone: '',
+          email: '',
+          business: '',
+          requirement: '',
+          message: '',
+        })
+        setTimeout(() => setIsSubmitted(false), 8000)
+      } else {
+        setSubmitError(res?.data?.message || 'Failed to send enquiry. Please try again.')
+      }
     } catch (err) {
       console.error('Error submitting inquiry to server:', err)
+      setSubmitError('Unable to connect to server. Please try again later.')
     } finally {
       setLoading(false)
-      setIsSubmitted(true)
-      setFormData({
-        name: '',
-        company: '',
-        phone: '',
-        email: '',
-        business: '',
-        requirement: '',
-        message: '',
-      })
     }
   }
 
@@ -320,17 +329,25 @@ export default function ContactSection() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-[10px] px-8 py-4 rounded-[2px] bg-gold text-white font-extrabold text-[12px] tracking-[0.08em] uppercase hover:-translate-y-[2px] hover:shadow-lg hover:shadow-gold/25 transition-all duration-200 cursor-pointer"
+                  disabled={loading}
+                  className="inline-flex items-center justify-center gap-[10px] px-8 py-4 rounded-[2px] bg-gold text-white font-extrabold text-[12px] tracking-[0.08em] uppercase hover:-translate-y-[2px] hover:shadow-lg hover:shadow-gold/25 transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {isSubmitted ? 'ENQUIRY RECEIVED ✓' : 'SEND ENQUIRY →'}
+                  {loading ? 'SENDING ENQUIRY...' : isSubmitted ? 'ENQUIRY RECEIVED ✓' : 'SEND ENQUIRY →'}
                 </button>
               </div>
 
+              {/* Error Notification */}
+              {submitError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-[2px] font-medium">
+                  ⚠️ {submitError}
+                </div>
+              )}
+
               {/* Success Notification */}
               {isSubmitted && (
-                <p className="text-[#1976A8] font-bold text-[14px] pt-3">
-                  Thank you. Your enquiry has been received. Our team will contact you shortly.
-                </p>
+                <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] rounded-[2px] font-medium">
+                  ✓ Thank you! Your commercial inquiry has been received. Our team will contact you shortly.
+                </div>
               )}
             </form>
           </div>

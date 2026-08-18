@@ -1,19 +1,24 @@
 import React, { useEffect, useState } from 'react'
 import ImageUploadField from '../components/common/ImageUploadField'
 import { getGeneralSettingsAPI, updateGeneralSettingsAPI } from '../../services/functions/settingFunctions'
+import { uploadImageAPI } from '../../services/functions/uploadFunctions'
 
 export default function GeneralSettings() {
   const [settings, setSettings] = useState({
-    logoImageUrl: '/PAREED FISH TRADING L.L.C 2026.png',
-    phone1: '+971 50 181 1875',
-    phone2: '+971 50 602 7334',
-    email: 'info@pareedfishtrading.com',
-    location: 'Waterfront Market',
-    cityCountry: 'Dubai, United Arab Emirates',
+    logoImageUrl: '',
+    phone1: '',
+    phone2: '',
+    email: '',
+    location: '',
+    cityCountry: '',
   })
 
+  const [originalSettings, setOriginalSettings] = useState(null)
+  const [isDirty, setIsDirty] = useState(false)
+  const [logoFile, setLogoFile] = useState(null)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(true)
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
@@ -21,6 +26,7 @@ export default function GeneralSettings() {
   }, [])
 
   const fetchSettings = async () => {
+    setIsFetching(true)
     try {
       const res = await getGeneralSettingsAPI()
       if (res && res.status >= 200 && res.status < 300) {
@@ -30,11 +36,25 @@ export default function GeneralSettings() {
             ...prev,
             ...data,
           }))
+          setOriginalSettings(JSON.parse(JSON.stringify(data)))
         }
       }
     } catch (err) {
       console.error('Error fetching settings:', err)
+    } finally {
+      setIsFetching(false)
+      setIsDirty(false)
     }
+  }
+
+  const handleCancel = () => {
+    if (originalSettings) {
+      setSettings(JSON.parse(JSON.stringify(originalSettings)))
+    }
+    setLogoFile(null)
+    setIsDirty(false)
+    setErrorMsg('')
+    setSaved(false)
   }
 
   const handleChange = (e) => {
@@ -42,14 +62,17 @@ export default function GeneralSettings() {
       ...settings,
       [e.target.name]: e.target.value,
     })
+    setIsDirty(true)
     setSaved(false)
   }
 
-  const handleLogoChange = (newLogo) => {
+  const handleLogoChange = (newLogo, file) => {
     setSettings({
       ...settings,
       logoImageUrl: newLogo,
     })
+    setLogoFile(file || null)
+    setIsDirty(true)
     setSaved(false)
   }
 
@@ -58,8 +81,34 @@ export default function GeneralSettings() {
     setLoading(true)
     setErrorMsg('')
     try {
-      const res = await updateGeneralSettingsAPI(settings)
+      let finalLogoUrl = settings.logoImageUrl
+
+      if (logoFile) {
+        const formData = new FormData()
+        formData.append('image', logoFile)
+        const uploadRes = await uploadImageAPI(formData)
+        if (uploadRes && uploadRes.status >= 200 && uploadRes.status < 300) {
+          const resData = uploadRes.data?.data || uploadRes.data
+          finalLogoUrl =
+            resData?.imageUrl ||
+            resData?.url ||
+            (resData?.filename ? `/uploads/${resData.filename}` : null) ||
+            (uploadRes.data?.file?.filename ? `/uploads/${uploadRes.data.file.filename}` : null) ||
+            finalLogoUrl
+        }
+      }
+
+      const payload = {
+        ...settings,
+        logoImageUrl: finalLogoUrl,
+      }
+
+      const res = await updateGeneralSettingsAPI(payload)
       if (res && res.status >= 200 && res.status < 300) {
+        setSettings(payload)
+        setOriginalSettings(JSON.parse(JSON.stringify(payload)))
+        setLogoFile(null)
+        setIsDirty(false)
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
       } else {
@@ -71,6 +120,17 @@ export default function GeneralSettings() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (isFetching) {
+    return (
+      <div className="adminContainer py-20 flex flex-col items-center justify-center space-y-4">
+        <div className="w-10 h-10 border-4 border-gold/30 border-t-gold rounded-full animate-spin"></div>
+        <p className="text-[13px] font-bold text-navy uppercase tracking-wider">
+          Loading General Settings...
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -88,13 +148,26 @@ export default function GeneralSettings() {
           </p>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={loading}
-          className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
-        >
-          {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
-        </button>
+        <div className="flex items-center gap-3">
+          {isDirty && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={loading}
+              className="border border-[#DCE6EC] bg-white hover:bg-slate-50 text-navy font-extrabold text-[12px] uppercase tracking-wider px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-xs disabled:opacity-50 animate-in fade-in"
+            >
+              Cancel
+            </button>
+          )}
+
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
+          >
+            {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
+          </button>
+        </div>
       </div>
 
       {errorMsg && (

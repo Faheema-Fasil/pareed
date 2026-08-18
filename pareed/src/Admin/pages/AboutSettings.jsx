@@ -1,23 +1,25 @@
 import React, { useEffect, useState } from 'react'
 import ImageUploadField from '../components/common/ImageUploadField'
 import { getAboutSectionAPI, updateAboutSectionAPI } from '../../services/functions/aboutFunctions'
+import { uploadImageAPI } from '../../services/functions/uploadFunctions'
 
 export default function AboutSettings() {
   const [aboutData, setAboutData] = useState({
-    eyebrow: 'About Pareed',
-    titleLine1: 'Built on experience.',
-    titleLine2: 'Driven by quality.',
-    sinceYear: '1990',
-    paragraph1:
-      'Pareed Fish Trading L.L.C was founded in 1990 by Mr. Pareed Kunnumpuram with a focus on supplying fresh, high-quality fish and seafood to restaurants, supermarkets, wholesale and retail businesses.',
-    paragraph2:
-      'The company continues to focus on freshness, reliability and customer satisfaction.',
-    imageUrl:
-      'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=80',
+    eyebrow: '',
+    titleLine1: '',
+    titleLine2: '',
+    sinceYear: '',
+    paragraph1: '',
+    paragraph2: '',
+    imageUrl: '',
   })
 
+  const [originalAboutData, setOriginalAboutData] = useState(null)
+  const [isDirty, setIsDirty] = useState(false)
+  const [imageFile, setImageFile] = useState(null)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(true)
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
@@ -25,6 +27,7 @@ export default function AboutSettings() {
   }, [])
 
   const fetchAboutData = async () => {
+    setIsFetching(true)
     try {
       const res = await getAboutSectionAPI()
       if (res && res.status >= 200 && res.status < 300) {
@@ -34,11 +37,25 @@ export default function AboutSettings() {
             ...prev,
             ...data,
           }))
+          setOriginalAboutData(JSON.parse(JSON.stringify(data)))
         }
       }
     } catch (err) {
       console.error('Error fetching about data:', err)
+    } finally {
+      setIsFetching(false)
+      setIsDirty(false)
     }
+  }
+
+  const handleCancel = () => {
+    if (originalAboutData) {
+      setAboutData(JSON.parse(JSON.stringify(originalAboutData)))
+    }
+    setImageFile(null)
+    setIsDirty(false)
+    setErrorMsg('')
+    setSaved(false)
   }
 
   const handleChange = (e) => {
@@ -46,14 +63,17 @@ export default function AboutSettings() {
       ...aboutData,
       [e.target.name]: e.target.value,
     })
+    setIsDirty(true)
     setSaved(false)
   }
 
-  const handleImageChange = (newImage) => {
-    setAboutData({
-      ...aboutData,
+  const handleImageChange = (newImage, file) => {
+    setAboutData((prev) => ({
+      ...prev,
       imageUrl: newImage,
-    })
+    }))
+    setImageFile(file || null)
+    setIsDirty(true)
     setSaved(false)
   }
 
@@ -62,8 +82,34 @@ export default function AboutSettings() {
     setLoading(true)
     setErrorMsg('')
     try {
-      const res = await updateAboutSectionAPI(aboutData)
+      let finalImageUrl = aboutData.imageUrl
+
+      if (imageFile) {
+        const formData = new FormData()
+        formData.append('image', imageFile)
+        const uploadRes = await uploadImageAPI(formData)
+        if (uploadRes && uploadRes.status >= 200 && uploadRes.status < 300) {
+          const resData = uploadRes.data?.data || uploadRes.data
+          finalImageUrl =
+            resData?.imageUrl ||
+            resData?.url ||
+            (resData?.filename ? `/uploads/${resData.filename}` : null) ||
+            (uploadRes.data?.file?.filename ? `/uploads/${uploadRes.data.file.filename}` : null) ||
+            finalImageUrl
+        }
+      }
+
+      const payload = {
+        ...aboutData,
+        imageUrl: finalImageUrl,
+      }
+
+      const res = await updateAboutSectionAPI(payload)
       if (res && res.status >= 200 && res.status < 300) {
+        setAboutData(payload)
+        setOriginalAboutData(JSON.parse(JSON.stringify(payload)))
+        setImageFile(null)
+        setIsDirty(false)
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
       } else {
@@ -75,6 +121,17 @@ export default function AboutSettings() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (isFetching) {
+    return (
+      <div className="max-w-[1050px] mx-auto py-20 flex flex-col items-center justify-center space-y-4">
+        <div className="w-10 h-10 border-4 border-gold/30 border-t-gold rounded-full animate-spin"></div>
+        <p className="text-[13px] font-bold text-navy uppercase tracking-wider">
+          Loading About Us Data...
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -93,13 +150,26 @@ export default function AboutSettings() {
           </p>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={loading}
-          className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
-        >
-          {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
-        </button>
+        <div className="flex items-center gap-3">
+          {isDirty && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={loading}
+              className="border border-[#DCE6EC] bg-white hover:bg-slate-50 text-navy font-extrabold text-[12px] uppercase tracking-wider px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-xs disabled:opacity-50 animate-in fade-in"
+            >
+              Cancel
+            </button>
+          )}
+
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
+          >
+            {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
+          </button>
+        </div>
       </div>
 
       {errorMsg && (

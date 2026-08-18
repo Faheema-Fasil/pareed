@@ -1,6 +1,32 @@
 import React, { useRef, useState } from 'react'
-import { uploadImageAPI } from '../../../services/functions/uploadFunctions'
 import { SERVER_URL } from '../../../services/server_url'
+
+/**
+ * Format image URL properly regardless of whether it's local blob/base64,
+ * external https://, backend relative path /uploads/..., or local public asset /...
+ */
+export const getFullImageUrl = (url) => {
+  if (!url || typeof url !== 'string' || !url.trim()) return ''
+  const trimmed = url.trim()
+
+  if (
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://')
+  ) {
+    return encodeURI(trimmed)
+  }
+
+  // If it's a backend uploaded file in /uploads
+  if (trimmed.startsWith('/uploads') || trimmed.startsWith('uploads')) {
+    const cleanPath = trimmed.replace(/^\/+/, '')
+    return encodeURI(`${SERVER_URL}/${cleanPath}`)
+  }
+
+  // Local frontend public directory asset (e.g. /PAREED FISH TRADING L.L.C 2026.png or /assets/...)
+  return encodeURI(trimmed.startsWith('/') ? trimmed : `/${trimmed}`)
+}
 
 export default function ImageUploadField({
   label = 'UPLOAD IMAGE',
@@ -11,39 +37,15 @@ export default function ImageUploadField({
   const fileInputRef = useRef(null)
   const [dragActive, setDragActive] = useState(false)
   const [isUrlMode, setIsUrlMode] = useState(false)
-  const [uploading, setUploading] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
-  const handleFile = async (file) => {
+  const handleFile = (file) => {
     if (!file || !file.type.startsWith('image/')) return
 
-    // Show instant preview
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      onChange(e.target.result)
-    }
-    reader.readAsDataURL(file)
-
-    // Attempt backend upload
-    try {
-      setUploading(true)
-      const formData = new FormData()
-      formData.append('image', file)
-      formData.append('file', file)
-      const res = await uploadImageAPI(formData)
-      if (res && res.status >= 200 && res.status < 300) {
-        const uploadedUrl =
-          res.data?.imageUrl ||
-          res.data?.url ||
-          (res.data?.filename ? `${SERVER_URL}/uploads/${res.data.filename}` : null)
-        if (uploadedUrl) {
-          onChange(uploadedUrl)
-        }
-      }
-    } catch (err) {
-      console.warn('Backend image upload skipped or failed, using local preview data:', err)
-    } finally {
-      setUploading(false)
-    }
+    // Create local object URL for instant preview without uploading yet
+    const previewUrl = URL.createObjectURL(file)
+    setImgError(false)
+    onChange(previewUrl, file)
   }
 
   const handleFileChange = (e) => {
@@ -69,6 +71,8 @@ export default function ImageUploadField({
     if (file) handleFile(file)
   }
 
+  const previewSrc = getFullImageUrl(value)
+
   return (
     <div className={`space-y-2 w-full ${className}`}>
       {/* Label and Mode Switch */}
@@ -91,20 +95,27 @@ export default function ImageUploadField({
           <input
             type="text"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => {
+              setImgError(false)
+              onChange(e.target.value, null)
+            }}
             placeholder="https://example.com/photo.jpg"
             className="w-full border border-[#DCE6EC] bg-white px-3 py-2 text-[13px] text-ink outline-none focus:border-[#1976A8] rounded-[2px] font-mono"
           />
           {value && (
-            <div className="relative h-40 w-full rounded-[2px] overflow-hidden border border-[#DCE6EC] bg-slate-50">
-              <img
-                src={value}
-                alt="Preview"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.style.display = 'none'
-                }}
-              />
+            <div className="relative h-44 w-full rounded-[2px] overflow-hidden border border-[#DCE6EC] bg-slate-50 flex items-center justify-center">
+              {!imgError ? (
+                <img
+                  src={previewSrc}
+                  alt="Preview"
+                  className="w-full h-full object-contain"
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <span className="text-[12px] text-slate-400 font-medium">
+                  Image preview not available
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -115,12 +126,22 @@ export default function ImageUploadField({
             /* Current Image Preview & Replace Box */
             <div className="border border-[#DCE6EC] bg-[#F7F9FA] rounded-[3px] p-3 flex flex-col gap-3 w-full">
               {/* Thumbnail Container */}
-              <div className="h-60 w-full rounded-[2px] overflow-hidden border border-slate-200 bg-white shadow-xs flex items-center justify-center">
-                <img
-                  src={value}
-                  alt="Uploaded preview"
-                  className="w-full h-full object-contain"
-                />
+              <div className="h-60 w-full rounded-[2px] overflow-hidden border border-slate-200 bg-white shadow-xs flex items-center justify-center p-2">
+                {!imgError ? (
+                  <img
+                    src={previewSrc}
+                    alt="Uploaded preview"
+                    className="w-full h-full object-contain"
+                    onError={() => setImgError(true)}
+                  />
+                ) : (
+                  <div className="text-center p-4">
+                    <span className="text-[28px] block mb-1">🖼️</span>
+                    <span className="text-[12px] text-slate-400 font-medium block">
+                      {value}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Info & Action Buttons */}
@@ -128,7 +149,7 @@ export default function ImageUploadField({
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-bold text-navy flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-                    Image uploaded
+                    Image ready (will upload on save)
                   </span>
                 </div>
 
@@ -142,7 +163,7 @@ export default function ImageUploadField({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onChange('')}
+                    onClick={() => onChange('', null)}
                     className="w-full border border-red-300 bg-white text-red-600 hover:bg-red-50 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider py-2 px-2 rounded-[2px] transition-colors cursor-pointer text-center truncate"
                   >
                     Remove
@@ -180,7 +201,7 @@ export default function ImageUploadField({
                 </svg>
               </div>
               <p className="text-[12px] font-bold text-navy">
-                Click to upload or drag &amp; drop
+                Click to choose image or drag &amp; drop
               </p>
               <p className="text-[10px] text-[#647483] mt-0.5">
                 PNG, JPG, WEBP (up to 10MB)

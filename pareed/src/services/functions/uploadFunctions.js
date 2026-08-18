@@ -1,4 +1,4 @@
-import { postAPI } from '../commonAPI'
+import { commonAPI } from '../commonAPI'
 import { SERVER_URL } from '../server_url'
 import { getAuthHeader } from './userFunctions'
 
@@ -6,7 +6,7 @@ import { getAuthHeader } from './userFunctions'
  * @desc    Upload an image or media file
  * @route   POST /api/upload
  * @access  Private (Admin) / Public
- * @param   {FormData} formData
+ * @param   {FormData} formData - with single field 'image'
  * @param   {string|Object} [tokenOrHeader]
  */
 export const uploadImageAPI = async (formData, tokenOrHeader) => {
@@ -15,10 +15,8 @@ export const uploadImageAPI = async (formData, tokenOrHeader) => {
       ? { Authorization: `Bearer ${tokenOrHeader}` }
       : tokenOrHeader || getAuthHeader()
 
-  const headers = {
+  // Let browser/axios automatically set boundary for multipart FormData
+  return await commonAPI('POST', `${SERVER_URL}/api/upload`, formData, {
     ...authHeader,
-    'Content-Type': 'multipart/form-data',
-  }
-
-  return await postAPI(`${SERVER_URL}/api/upload`, formData, headers)
+  })
 }

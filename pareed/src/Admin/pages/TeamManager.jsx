@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import ImageUploadField from '../components/common/ImageUploadField'
 import {
   getAllTeamAPI,
@@ -6,66 +6,85 @@ import {
   updateTeamMemberAPI,
   deleteTeamMemberAPI,
 } from '../../services/functions/teamFunctions'
+import { uploadImageAPI } from '../../services/functions/uploadFunctions'
 
 export default function TeamManager() {
-  const [members, setMembers] = useState([
-    {
-      id: 1,
-      name: 'Pareed Kunnumpuram',
-      role: 'CEO & FOUNDER',
-      initials: 'PK',
-      photo: '',
-    },
-    {
-      id: 2,
-      name: 'Ubais Kunnumpuram',
-      role: 'MANAGING DIRECTOR',
-      initials: 'UK',
-      photo: '',
-    },
-    {
-      id: 3,
-      name: 'Aliyar Pattachalil',
-      role: 'GENERAL MANAGER',
-      initials: 'AP',
-      photo: '',
-    },
-  ])
-
+  const [members, setMembers] = useState([])
+  const [originalMembers, setOriginalMembers] = useState([])
+  const [confirmDelete, setConfirmDelete] = useState(null)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(true)
   const [errorMsg, setErrorMsg] = useState('')
+  const bottomRef = useRef(null)
+
+  const [isDirty, setIsDirty] = useState(false)
 
   useEffect(() => {
     fetchTeam()
   }, [])
 
   const fetchTeam = async () => {
+    setIsFetching(true)
     try {
       const res = await getAllTeamAPI()
       if (res && res.status >= 200 && res.status < 300) {
         const data = res.data?.data || res.data
         if (Array.isArray(data) && data.length > 0) {
-          setMembers(
-            data.map((item, idx) => ({
-              id: item._id || item.id || idx + 1,
-              _id: item._id,
-              name: item.name || '',
-              role: item.role || item.designation || 'EXECUTIVE',
-              initials: item.initials || 'PK',
-              photo: item.photo || item.imageUrl || '',
-            }))
-          )
+          const formatted = data.map((item, idx) => ({
+            id: item._id || item.id || idx + 1,
+            _id: item._id,
+            name: item.name || '',
+            role: item.role || item.designation || 'EXECUTIVE',
+            initials: item.initials || 'PK',
+            photo: item.photo || item.imageUrl || '',
+            photoFile: null,
+          }))
+          setMembers(formatted)
+          setOriginalMembers(JSON.parse(JSON.stringify(formatted)))
+        } else {
+          const initial = [
+            {
+              id: Date.now(),
+              name: '',
+              role: 'EXECUTIVE',
+              initials: '',
+              photo: '',
+              photoFile: null,
+            },
+          ]
+          setMembers(initial)
+          setOriginalMembers(JSON.parse(JSON.stringify(initial)))
         }
+      } else {
+        const initial = [
+          {
+            id: Date.now(),
+            name: '',
+            role: 'EXECUTIVE',
+            initials: '',
+            photo: '',
+            photoFile: null,
+          },
+        ]
+        setMembers(initial)
+        setOriginalMembers(JSON.parse(JSON.stringify(initial)))
       }
     } catch (err) {
       console.error('Error fetching team:', err)
+    } finally {
+      setIsFetching(false)
+      setIsDirty(false)
     }
   }
 
-  const handleChange = (index, field, value) => {
+  const handleChange = (index, field, value, file = null) => {
     const updated = [...members]
     updated[index][field] = value
+
+    if (field === 'photo') {
+      updated[index].photoFile = file || null
+    }
 
     // Auto-generate initials if editing name and initials field is empty or matching old initials
     if (field === 'name' && (!updated[index].initials || updated[index].initials.length <= 3)) {
@@ -82,7 +101,9 @@ export default function TeamManager() {
     }
 
     setMembers(updated)
+    setIsDirty(true)
     setSaved(false)
+    setErrorMsg('')
   }
 
   const handleAddMember = () => {
@@ -92,16 +113,34 @@ export default function TeamManager() {
       role: 'EXECUTIVE',
       initials: '',
       photo: '',
+      photoFile: null,
     }
-    setMembers([...members, newMember])
+    setMembers((prev) => [...prev, newMember])
+    setIsDirty(true)
     setSaved(false)
+    setErrorMsg('')
+
+    // Scroll down smoothly to newly added member card
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }, 100)
   }
 
-  const handleRemoveMember = async (member) => {
+  // Open confirmation modal for delete
+  const promptDeleteMember = (member) => {
     if (members.length <= 1) {
-      alert('You must have at least one team member.')
+      setErrorMsg('You must keep at least one team member.')
       return
     }
+    setErrorMsg('')
+    setConfirmDelete(member)
+  }
+
+  // Execute deletion after user confirms
+  const executeDeleteMember = async () => {
+    if (!confirmDelete) return
+    const member = confirmDelete
+    setConfirmDelete(null)
 
     if (member._id) {
       try {
@@ -111,29 +150,86 @@ export default function TeamManager() {
       }
     }
 
-    setMembers(members.filter((m) => m.id !== member.id && m._id !== member._id))
+    const updated = members.filter((m) => m.id !== member.id && m._id !== member._id)
+    setMembers(updated)
+    setIsDirty(true)
+    setSaved(false)
+    setErrorMsg('')
+  }
+
+  // Cancel / Revert unsaved edits
+  const handleCancelChanges = () => {
+    setMembers(JSON.parse(JSON.stringify(originalMembers)))
+    setIsDirty(false)
+    setErrorMsg('')
     setSaved(false)
   }
 
   const handleSave = async (e) => {
     e.preventDefault()
-    setLoading(true)
     setErrorMsg('')
+
+    if (members.length === 0) {
+      setErrorMsg('Please add at least one team member before saving.')
+      return
+    }
+
+    // Validate that required fields are not empty
+    for (let i = 0; i < members.length; i++) {
+      const item = members[i]
+      if (!item.name || !item.name.trim()) {
+        setErrorMsg(`Team Member #${i + 1} is missing a Full Name.`)
+        return
+      }
+      if (!item.role || !item.role.trim()) {
+        setErrorMsg(`Team Member #${i + 1} (${item.name}) is missing a Designation / Role.`)
+        return
+      }
+      if (!item.initials || !item.initials.trim()) {
+        setErrorMsg(`Team Member #${i + 1} (${item.name}) is missing Initials.`)
+        return
+      }
+    }
+
+    setLoading(true)
+
     try {
       for (const item of members) {
-        const payload = {
-          name: item.name,
-          role: item.role,
-          initials: item.initials,
-          photo: item.photo,
+        let finalPhoto = item.photo
+
+        // If a new local image file was selected, upload it now
+        if (item.photoFile) {
+          const formData = new FormData()
+          formData.append('image', item.photoFile)
+
+          const uploadRes = await uploadImageAPI(formData)
+          if (uploadRes && uploadRes.status >= 200 && uploadRes.status < 300) {
+            const resData = uploadRes.data?.data || uploadRes.data
+            finalPhoto =
+              resData?.imageUrl ||
+              resData?.url ||
+              (resData?.filename ? `/uploads/${resData.filename}` : null) ||
+              (uploadRes.data?.file?.filename ? `/uploads/${uploadRes.data.file.filename}` : null) ||
+              finalPhoto
+          }
         }
+
+        const payload = {
+          name: item.name.trim(),
+          role: item.role.trim(),
+          initials: item.initials.trim(),
+          photo: finalPhoto,
+        }
+
         if (item._id) {
           await updateTeamMemberAPI(item._id, payload)
         } else {
           await addTeamMemberAPI(payload)
         }
       }
+
       setSaved(true)
+      setIsDirty(false)
       setTimeout(() => setSaved(false), 3000)
       fetchTeam()
     } catch (err) {
@@ -142,6 +238,17 @@ export default function TeamManager() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (isFetching) {
+    return (
+      <div className="adminContainer py-20 flex flex-col items-center justify-center space-y-4">
+        <div className="w-10 h-10 border-4 border-gold/30 border-t-gold rounded-full animate-spin"></div>
+        <p className="text-[13px] font-bold text-navy uppercase tracking-wider">
+          Loading Team Members...
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -169,6 +276,17 @@ export default function TeamManager() {
             <span>+</span>
             <span>Add Member</span>
           </button>
+
+          {isDirty && (
+            <button
+              type="button"
+              onClick={handleCancelChanges}
+              disabled={loading}
+              className="border border-[#DCE6EC] bg-white hover:bg-slate-50 text-navy font-extrabold text-[12px] uppercase tracking-wider px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-xs disabled:opacity-50 animate-in fade-in"
+            >
+              Cancel
+            </button>
+          )}
 
           <button
             type="button"
@@ -200,39 +318,21 @@ export default function TeamManager() {
             key={member.id || index}
             className="bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4 relative group"
           >
-            {/* Remove Button */}
+            {/* Remove Button (Triggers Confirmation) */}
             <button
               type="button"
-              onClick={() => handleRemoveMember(member)}
+              onClick={() => promptDeleteMember(member)}
               className="absolute top-3 right-3 w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center text-[12px] transition-colors cursor-pointer z-10"
               title="Remove member"
             >
               ✕
             </button>
 
-            {/* Portrait Photo / Monogram Preview */}
-            <div className="h-44 bg-gradient-to-br from-[#EEF3F5] to-[#D9E7EE] rounded-[2px] overflow-hidden border border-[#DCE6EC] relative flex items-center justify-center">
-              {member.photo ? (
-                <img
-                  src={member.photo}
-                  alt={member.name || 'Team member'}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="font-serif text-[44px] font-bold text-navy select-none">
-                  {member.initials || '??'}
-                </span>
-              )}
-              <span className="absolute bottom-2 right-2 bg-navy/80 text-white text-[10px] px-2 py-0.5 rounded-[2px] backdrop-blur-xs font-semibold">
-                {member.photo ? 'Photo Loaded' : 'Monogram Fallback'}
-              </span>
-            </div>
-
             {/* Initials & Full Name */}
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-1">
                 <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                  INITIALS
+                  INITIALS *
                 </label>
                 <input
                   type="text"
@@ -248,7 +348,7 @@ export default function TeamManager() {
 
               <div className="col-span-2">
                 <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                  FULL NAME
+                  FULL NAME *
                 </label>
                 <input
                   type="text"
@@ -263,7 +363,7 @@ export default function TeamManager() {
             {/* Designation / Role */}
             <div>
               <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                DESIGNATION / ROLE
+                DESIGNATION / ROLE *
               </label>
               <input
                 type="text"
@@ -279,7 +379,9 @@ export default function TeamManager() {
               <ImageUploadField
                 label="MEMBER PORTRAIT PHOTO"
                 value={member.photo}
-                onChange={(newPhoto) => handleChange(index, 'photo', newPhoto)}
+                onChange={(newPhoto, file) =>
+                  handleChange(index, 'photo', newPhoto, file)
+                }
               />
             </div>
           </div>
@@ -302,6 +404,50 @@ export default function TeamManager() {
           </p>
         </button>
       </div>
+
+      {/* Auto-scroll target anchor */}
+      <div ref={bottomRef} className="h-2" />
+
+      {/* Confirmation Delete Modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#DCE6EC] rounded-[4px] shadow-2xl p-6 sm:p-7 max-w-md w-full space-y-5">
+            <div className="flex items-center gap-3 text-red-600">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-[20px] font-bold">
+                ⚠️
+              </div>
+              <h3 className="font-serif text-[20px] font-bold text-navy">
+                Delete Team Member?
+              </h3>
+            </div>
+
+            <p className="text-[14px] text-ink">
+              Are you sure you want to remove{' '}
+              <strong className="text-navy font-bold">
+                "{confirmDelete.name || 'this team member'}"
+              </strong>
+              ? This person will be removed from the public leadership section.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(null)}
+                className="px-4 py-2.5 rounded-[2px] border border-slate-200 text-ink font-bold text-[12px] uppercase tracking-wider hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                No, Keep Member
+              </button>
+              <button
+                type="button"
+                onClick={executeDeleteMember}
+                className="px-5 py-2.5 rounded-[2px] bg-red-600 hover:bg-red-700 text-white font-bold text-[12px] uppercase tracking-wider transition-colors cursor-pointer shadow-sm"
+              >
+                Yes, Delete Member
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

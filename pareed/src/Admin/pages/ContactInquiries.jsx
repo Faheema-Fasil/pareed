@@ -6,47 +6,11 @@ import {
 } from '../../services/functions/inquiryFunctions'
 
 export default function ContactInquiries() {
-  const [inquiries, setInquiries] = useState([
-    {
-      id: 1,
-      name: 'Rashid Al Nuaimi',
-      company: 'Emirates Seafood Grill LLC',
-      phone: '+971 50 123 4567',
-      email: 'rashid@emiratesgrill.ae',
-      business: 'Restaurant',
-      requirement: 'Fresh Fish',
-      message: 'Looking for a daily delivery of 50kg fresh King Fish and Hamour for our branch in Deira.',
-      date: 'Today, 10:24 AM',
-      status: 'New',
-    },
-    {
-      id: 2,
-      name: 'Sarah Jenkins',
-      company: 'Marina Waterfront Bistro',
-      phone: '+971 55 987 6543',
-      email: 's.jenkins@marinabistro.com',
-      business: 'Hotel / Restaurant',
-      requirement: 'Bulk Order',
-      message: 'Need wholesale price list for Salmon, Pomfret and Jumbo Tiger Prawns.',
-      date: 'Yesterday, 4:15 PM',
-      status: 'Contacted',
-    },
-    {
-      id: 3,
-      name: 'Mohammed Tariq',
-      company: 'Prime Mart Supermarkets',
-      phone: '+971 52 444 8899',
-      email: 'procurement@primemart.ae',
-      business: 'Supermarket',
-      requirement: 'Regular Supply',
-      message: 'We operate 4 supermarkets across Sharjah & Dubai and are evaluating seafood supply contracts.',
-      date: 'Aug 14, 2026',
-      status: 'In Progress',
-    },
-  ])
-
+  const [inquiries, setInquiries] = useState([])
   const [selectedLead, setSelectedLead] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(null)
+  const [filterStatus, setFilterStatus] = useState('All')
 
   useEffect(() => {
     fetchInquiries()
@@ -58,8 +22,16 @@ export default function ContactInquiries() {
       const res = await getAllInquiriesAPI()
       if (res && res.status >= 200 && res.status < 300) {
         const data = res.data?.data || res.data
-        if (Array.isArray(data) && data.length > 0) {
-          const formatted = data.map((item, idx) => ({
+        if (Array.isArray(data)) {
+          // Sort newest inquiries first
+          const sorted = [...data].sort((a, b) => {
+            if (a.createdAt && b.createdAt) {
+              return new Date(b.createdAt) - new Date(a.createdAt)
+            }
+            return (b._id || '').localeCompare(a._id || '')
+          })
+
+          const formatted = sorted.map((item, idx) => ({
             id: item._id || item.id || idx + 1,
             _id: item._id,
             name: item.name || '',
@@ -69,12 +41,23 @@ export default function ContactInquiries() {
             business: item.business || '',
             requirement: item.requirement || '',
             message: item.message || '',
-            date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recent',
+            date: item.createdAt
+              ? new Date(item.createdAt).toLocaleDateString('en-GB', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : 'Recent',
             status: item.status || 'New',
           }))
+
           setInquiries(formatted)
-          setSelectedLead(formatted[0])
-          return
+          setSelectedLead((prev) => {
+            if (!prev) return formatted[0] || null
+            return formatted.find((f) => f.id === prev.id || f._id === prev._id) || formatted[0] || null
+          })
         }
       }
     } catch (err) {
@@ -84,7 +67,29 @@ export default function ContactInquiries() {
     }
   }
 
-  const handleDeleteLead = async (lead) => {
+  const handleStatusChange = async (lead, newStatus) => {
+    const updated = inquiries.map((item) =>
+      item.id === lead.id || item._id === lead._id ? { ...item, status: newStatus } : item
+    )
+    setInquiries(updated)
+    if (selectedLead && (selectedLead.id === lead.id || selectedLead._id === lead._id)) {
+      setSelectedLead({ ...selectedLead, status: newStatus })
+    }
+
+    if (lead._id) {
+      try {
+        await updateInquiryStatusAPI(lead._id, { status: newStatus })
+      } catch (err) {
+        console.error('Error updating inquiry status:', err)
+      }
+    }
+  }
+
+  const executeDeleteLead = async () => {
+    if (!confirmDelete) return
+    const lead = confirmDelete
+    setConfirmDelete(null)
+
     if (lead._id) {
       try {
         await deleteInquiryAPI(lead._id)
@@ -92,13 +97,22 @@ export default function ContactInquiries() {
         console.error('Error deleting inquiry:', err)
       }
     }
+
     const updated = inquiries.filter((item) => item.id !== lead.id && item._id !== lead._id)
     setInquiries(updated)
-    setSelectedLead(updated[0] || null)
+    if (selectedLead && (selectedLead.id === lead.id || selectedLead._id === lead._id)) {
+      setSelectedLead(updated[0] || null)
+    }
   }
 
+  const filteredInquiries =
+    filterStatus === 'All'
+      ? inquiries
+      : inquiries.filter((item) => item.status?.toLowerCase() === filterStatus.toLowerCase())
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="adminContainer space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#DCE6EC] pb-5">
         <div>
           <div className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-gold manrope-extrabold">
@@ -108,130 +122,271 @@ export default function ContactInquiries() {
             Commercial Inquiries
           </h1>
           <p className="text-[13px] text-[#647483]">
-            Track and review wholesale inquiries received through the contact form.
+            Track, review, and manage wholesale inquiries received through the website contact form.
           </p>
         </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={fetchInquiries}
+            disabled={loading}
+            className="border border-[#DCE6EC] bg-white hover:bg-slate-50 text-navy font-extrabold text-[12px] uppercase tracking-wider px-4 py-2.5 rounded-[2px] transition-all cursor-pointer shadow-xs flex items-center gap-2"
+          >
+            <span>↻</span>
+            <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Leads Table / List */}
-        <div className="lg:col-span-2 bg-white border border-[#DCE6EC] rounded-[3px] shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-slate-100 bg-[#F7F9FA] flex justify-between items-center">
-            <span className="text-[12px] font-bold uppercase tracking-wider text-navy">
-              All Inquiries ({inquiries.length})
-            </span>
-          </div>
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {['All', 'New', 'Contacted', 'In Progress', 'Completed'].map((status) => (
+          <button
+            key={status}
+            type="button"
+            onClick={() => setFilterStatus(status)}
+            className={`px-4 py-2 rounded-[2px] text-[12px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              filterStatus === status
+                ? 'bg-navy text-white shadow-xs'
+                : 'bg-white border border-[#DCE6EC] text-[#647483] hover:text-navy hover:bg-slate-50'
+            }`}
+          >
+            {status}{' '}
+            {status === 'All'
+              ? `(${inquiries.length})`
+              : `(${inquiries.filter((i) => i.status?.toLowerCase() === status.toLowerCase()).length})`}
+          </button>
+        ))}
+      </div>
 
-          <div className="divide-y divide-slate-100">
-            {inquiries.map((lead) => (
-              <div
-                key={lead.id}
-                onClick={() => setSelectedLead(lead)}
-                className={`p-4 transition-colors cursor-pointer hover:bg-slate-50 ${
-                  selectedLead?.id === lead.id ? 'bg-[#EEF3F5] border-l-4 border-gold' : ''
-                }`}
-              >
-                <div className="flex justify-between items-start mb-1">
-                  <h4 className="font-bold text-navy text-[14px]">{lead.name}</h4>
-                  <span className="text-[11px] text-[#647483]">{lead.date}</span>
-                </div>
-                <div className="text-[12px] text-[#647483] font-medium mb-2">
-                  {lead.company} • <span className="font-mono text-ink">{lead.phone}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="bg-white border border-slate-200 text-[#1976A8] text-[10px] font-extrabold px-2 py-0.5 rounded-[2px]">
-                    {lead.requirement}
-                  </span>
-                  <span className="bg-gold/15 text-gold text-[10px] font-extrabold px-2 py-0.5 rounded-[2px]">
-                    {lead.business}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+      {loading && inquiries.length === 0 ? (
+        <div className="py-20 flex flex-col items-center justify-center space-y-4">
+          <div className="w-10 h-10 border-4 border-gold/30 border-t-gold rounded-full animate-spin"></div>
+          <p className="text-[13px] font-bold text-navy uppercase tracking-wider">
+            Loading Inquiries...
+          </p>
         </div>
-
-        {/* Selected Lead Detail View */}
-        <div className="bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4">
-          <h3 className="font-serif text-[20px] font-bold text-navy border-b border-slate-100 pb-3">
-            Lead Details
+      ) : inquiries.length === 0 ? (
+        <div className="bg-white border border-[#DCE6EC] rounded-[3px] p-12 text-center space-y-3">
+          <div className="w-16 h-16 rounded-full bg-[#EEF3F5] text-navy text-[28px] font-bold flex items-center justify-center mx-auto mb-2">
+            ✉
+          </div>
+          <h3 className="font-serif text-[22px] font-bold text-navy">
+            No Inquiries Received Yet
           </h3>
-
-          {selectedLead ? (
-            <div className="space-y-4 text-[13px]">
-              <div>
-                <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">NAME</span>
-                <p className="font-bold text-navy text-[15px]">{selectedLead.name}</p>
-              </div>
-
-              <div>
-                <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">COMPANY</span>
-                <p className="font-semibold text-ink">{selectedLead.company}</p>
-              </div>
-
-              <div>
-                <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">PHONE</span>
-                <p className="font-mono text-ink">
-                  <a href={`tel:${selectedLead.phone}`} className="text-[#1976A8] hover:underline">
-                    {selectedLead.phone}
-                  </a>
-                </p>
-              </div>
-
-              <div>
-                <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">EMAIL</span>
-                <p className="font-mono text-ink">
-                  <a href={`mailto:${selectedLead.email}`} className="text-[#1976A8] hover:underline">
-                    {selectedLead.email}
-                  </a>
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
-                <div>
-                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">BUSINESS</span>
-                  <p className="font-medium text-navy">{selectedLead.business}</p>
-                </div>
-                <div>
-                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">REQUIREMENT</span>
-                  <p className="font-medium text-navy">{selectedLead.requirement}</p>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-slate-100">
-                <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block mb-1">MESSAGE</span>
-                <div className="p-3 bg-[#F7F9FA] border border-slate-200 rounded-[2px] text-ink leading-relaxed">
-                  "{selectedLead.message}"
-                </div>
-              </div>
-
-              <div className="pt-2 flex gap-2 flex-wrap">
-                <a
-                  href={`tel:${selectedLead.phone}`}
-                  className="flex-1 min-w-[100px] text-center bg-gold text-white font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider"
-                >
-                  Call Lead
-                </a>
-                <a
-                  href={`mailto:${selectedLead.email}`}
-                  className="flex-1 min-w-[100px] text-center border border-navy text-navy font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider hover:bg-navy hover:text-white transition-colors"
-                >
-                  Send Email
-                </a>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteLead(selectedLead)}
-                  className="text-red-500 hover:bg-red-50 border border-red-200 px-3 py-2.5 rounded-[2px] text-[11px] font-bold uppercase transition-colors cursor-pointer"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p className="text-gray-400 text-center py-8">Select a lead to view details</p>
-          )}
+          <p className="text-[14px] text-[#647483] max-w-md mx-auto">
+            When potential commercial seafood clients submit the contact form on your website, their inquiries will appear here in real time.
+          </p>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Leads List */}
+          <div className="lg:col-span-2 bg-white border border-[#DCE6EC] rounded-[3px] shadow-xs overflow-hidden">
+            <div className="p-4 border-b border-slate-100 bg-[#F7F9FA] flex justify-between items-center">
+              <span className="text-[12px] font-bold uppercase tracking-wider text-navy">
+                Inquiries List ({filteredInquiries.length})
+              </span>
+              <span className="text-[11px] text-[#647483]">
+                Sorted by latest first
+              </span>
+            </div>
+
+            <div className="divide-y divide-slate-100 max-h-[650px] overflow-y-auto">
+              {filteredInquiries.map((lead) => (
+                <div
+                  key={lead.id}
+                  onClick={() => setSelectedLead(lead)}
+                  className={`p-4 transition-colors cursor-pointer hover:bg-slate-50 ${
+                    selectedLead?.id === lead.id ? 'bg-[#EEF3F5] border-l-4 border-gold' : ''
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="font-bold text-navy text-[15px]">{lead.name}</h4>
+                    <span className="text-[11px] text-[#647483]">{lead.date}</span>
+                  </div>
+                  <div className="text-[12px] text-[#647483] font-medium mb-2.5">
+                    {lead.company} • <span className="font-mono text-navy font-semibold">{lead.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="bg-white border border-slate-200 text-[#1976A8] text-[10px] font-extrabold px-2.5 py-0.5 rounded-[2px] uppercase">
+                      {lead.requirement || 'Seafood'}
+                    </span>
+                    <span className="bg-gold/15 text-gold text-[10px] font-extrabold px-2.5 py-0.5 rounded-[2px] uppercase">
+                      {lead.business || 'Commercial'}
+                    </span>
+                    <span
+                      className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-[2px] uppercase ml-auto ${
+                        lead.status === 'New'
+                          ? 'bg-blue-100 text-blue-800'
+                          : lead.status === 'Completed'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : lead.status === 'In Progress'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {lead.status || 'New'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Selected Lead Detail View */}
+          <div className="bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4">
+            <h3 className="font-serif text-[20px] font-bold text-navy border-b border-slate-100 pb-3 flex justify-between items-center">
+              <span>Lead Details</span>
+              {selectedLead && (
+                <span
+                  className={`text-[10px] font-extrabold px-2.5 py-1 rounded-[2px] uppercase ${
+                    selectedLead.status === 'New'
+                      ? 'bg-blue-100 text-blue-800'
+                      : selectedLead.status === 'Completed'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : selectedLead.status === 'In Progress'
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  {selectedLead.status || 'New'}
+                </span>
+              )}
+            </h3>
+
+            {selectedLead ? (
+              <div className="space-y-4 text-[13px]">
+                {/* Status Switcher */}
+                <div>
+                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block mb-1">
+                    STATUS
+                  </span>
+                  <select
+                    value={selectedLead.status || 'New'}
+                    onChange={(e) => handleStatusChange(selectedLead, e.target.value)}
+                    className="w-full border border-[#DCE6EC] px-3 py-2 text-[13px] font-bold text-navy rounded-[2px] outline-none focus:border-[#1976A8] bg-white cursor-pointer"
+                  >
+                    <option value="New">New</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">NAME</span>
+                  <p className="font-bold text-navy text-[16px]">{selectedLead.name}</p>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">COMPANY</span>
+                  <p className="font-semibold text-ink">{selectedLead.company}</p>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">PHONE</span>
+                  <p className="font-mono text-ink">
+                    <a href={`tel:${selectedLead.phone}`} className="text-[#1976A8] font-bold hover:underline">
+                      {selectedLead.phone}
+                    </a>
+                  </p>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">EMAIL</span>
+                  <p className="font-mono text-ink">
+                    <a href={`mailto:${selectedLead.email}`} className="text-[#1976A8] font-bold hover:underline">
+                      {selectedLead.email}
+                    </a>
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                  <div>
+                    <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">BUSINESS</span>
+                    <p className="font-bold text-navy">{selectedLead.business}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">REQUIREMENT</span>
+                    <p className="font-bold text-navy">{selectedLead.requirement}</p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100">
+                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block mb-1">MESSAGE / REQUIREMENTS</span>
+                  <div className="p-3.5 bg-[#F7F9FA] border border-slate-200 rounded-[2px] text-ink leading-relaxed whitespace-pre-wrap">
+                    {selectedLead.message || 'No additional message provided.'}
+                  </div>
+                </div>
+
+                <div className="pt-2 flex gap-2 flex-wrap">
+                  <a
+                    href={`tel:${selectedLead.phone}`}
+                    className="flex-1 min-w-[100px] text-center bg-gold hover:bg-gold/90 text-white font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider transition-colors shadow-xs"
+                  >
+                    Call Client
+                  </a>
+                  <a
+                    href={`mailto:${selectedLead.email}`}
+                    className="flex-1 min-w-[100px] text-center border border-navy text-navy font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider hover:bg-navy hover:text-white transition-colors"
+                  >
+                    Send Email
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(selectedLead)}
+                    className="text-red-600 hover:bg-red-50 border border-red-200 px-3.5 py-2.5 rounded-[2px] text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-400 text-center py-8">Select an inquiry to view details</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#DCE6EC] rounded-[4px] shadow-2xl p-6 sm:p-7 max-w-md w-full space-y-5">
+            <div className="flex items-center gap-3 text-red-600">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-[20px] font-bold">
+                ⚠️
+              </div>
+              <h3 className="font-serif text-[20px] font-bold text-navy">
+                Delete Inquiry?
+              </h3>
+            </div>
+
+            <p className="text-[14px] text-ink">
+              Are you sure you want to delete the inquiry from{' '}
+              <strong className="text-navy font-bold">"{confirmDelete.name}"</strong> (
+              {confirmDelete.company})? This record will be permanently deleted.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(null)}
+                className="px-4 py-2.5 rounded-[2px] border border-slate-200 text-ink font-bold text-[12px] uppercase tracking-wider hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeDeleteLead}
+                className="px-5 py-2.5 rounded-[2px] bg-red-600 hover:bg-red-700 text-white font-bold text-[12px] uppercase tracking-wider transition-colors cursor-pointer shadow-sm"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

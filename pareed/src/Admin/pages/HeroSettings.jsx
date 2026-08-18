@@ -1,26 +1,29 @@
 import React, { useEffect, useState } from 'react'
 import ImageUploadField from '../components/common/ImageUploadField'
 import { getHeroSectionAPI, updateHeroSectionAPI } from '../../services/functions/heroFunctions'
+import { uploadImageAPI } from '../../services/functions/uploadFunctions'
 
 export default function HeroSettings() {
   const [heroData, setHeroData] = useState({
-    eyebrow: 'Fresh & Premium Seafood',
-    titleLine1: 'Premium Seafood.',
-    titleLine2: 'Reliable Supply.',
-    description:
-      'Fresh, premium seafood supplied to restaurants, supermarkets, retailers and wholesale buyers across the UAE.',
-    primaryButtonText: 'REQUEST A QUOTE →',
-    primaryButtonLink: '#contact',
-    secondaryButtonText: 'EXPLORE PRODUCTS',
-    secondaryButtonLink: '#products',
-    bgImageUrl:
-      'https://images.unsplash.com/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=1920&q=80',
-    estTitle: 'Since 1990',
-    estSubtitle: 'Freshness · Quality · Reliability',
+    eyebrow: '',
+    titleLine1: '',
+    titleLine2: '',
+    description: '',
+    primaryButtonText: '',
+    primaryButtonLink: '',
+    secondaryButtonText: '',
+    secondaryButtonLink: '',
+    bgImageUrl: '',
+    estTitle: '',
+    estSubtitle: '',
   })
 
+  const [originalHeroData, setOriginalHeroData] = useState(null)
+  const [isDirty, setIsDirty] = useState(false)
+  const [imageFile, setImageFile] = useState(null)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(true)
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
@@ -28,6 +31,7 @@ export default function HeroSettings() {
   }, [])
 
   const fetchHeroData = async () => {
+    setIsFetching(true)
     try {
       const res = await getHeroSectionAPI()
       if (res && res.status >= 200 && res.status < 300) {
@@ -37,11 +41,25 @@ export default function HeroSettings() {
             ...prev,
             ...data,
           }))
+          setOriginalHeroData(JSON.parse(JSON.stringify(data)))
         }
       }
     } catch (err) {
       console.error('Error fetching hero data:', err)
+    } finally {
+      setIsFetching(false)
+      setIsDirty(false)
     }
+  }
+
+  const handleCancel = () => {
+    if (originalHeroData) {
+      setHeroData(JSON.parse(JSON.stringify(originalHeroData)))
+    }
+    setImageFile(null)
+    setIsDirty(false)
+    setErrorMsg('')
+    setSaved(false)
   }
 
   const handleChange = (e) => {
@@ -49,14 +67,17 @@ export default function HeroSettings() {
       ...heroData,
       [e.target.name]: e.target.value,
     })
+    setIsDirty(true)
     setSaved(false)
   }
 
-  const handleImageChange = (newImage) => {
-    setHeroData({
-      ...heroData,
+  const handleImageChange = (newImage, file) => {
+    setHeroData((prev) => ({
+      ...prev,
       bgImageUrl: newImage,
-    })
+    }))
+    setImageFile(file || null)
+    setIsDirty(true)
     setSaved(false)
   }
 
@@ -64,9 +85,40 @@ export default function HeroSettings() {
     e.preventDefault()
     setLoading(true)
     setErrorMsg('')
+
     try {
-      const res = await updateHeroSectionAPI(heroData)
+      let finalBgImageUrl = heroData.bgImageUrl
+
+      // If user selected a new local image file, upload it now
+      if (imageFile) {
+        const formData = new FormData()
+        formData.append('image', imageFile)
+
+        const uploadRes = await uploadImageAPI(formData)
+        if (uploadRes && uploadRes.status >= 200 && uploadRes.status < 300) {
+          const resData = uploadRes.data?.data || uploadRes.data
+          finalBgImageUrl =
+            resData?.imageUrl ||
+            resData?.url ||
+            (resData?.filename ? `/uploads/${resData.filename}` : null) ||
+            (uploadRes.data?.file?.filename ? `/uploads/${uploadRes.data.file.filename}` : null) ||
+            finalBgImageUrl
+        } else {
+          console.warn('Image upload failed, proceeding with current URL:', uploadRes)
+        }
+      }
+
+      const payload = {
+        ...heroData,
+        bgImageUrl: finalBgImageUrl,
+      }
+
+      const res = await updateHeroSectionAPI(payload)
       if (res && res.status >= 200 && res.status < 300) {
+        setHeroData(payload)
+        setOriginalHeroData(JSON.parse(JSON.stringify(payload)))
+        setImageFile(null)
+        setIsDirty(false)
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
       } else {
@@ -78,6 +130,17 @@ export default function HeroSettings() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (isFetching) {
+    return (
+      <div className="adminContainer py-20 flex flex-col items-center justify-center space-y-4">
+        <div className="w-10 h-10 border-4 border-gold/30 border-t-gold rounded-full animate-spin"></div>
+        <p className="text-[13px] font-bold text-navy uppercase tracking-wider">
+          Loading Hero Section Data...
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -96,13 +159,26 @@ export default function HeroSettings() {
           </p>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={loading}
-          className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
-        >
-          {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
-        </button>
+        <div className="flex items-center gap-3">
+          {isDirty && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={loading}
+              className="border border-[#DCE6EC] bg-white hover:bg-slate-50 text-navy font-extrabold text-[12px] uppercase tracking-wider px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-xs disabled:opacity-50 animate-in fade-in"
+            >
+              Cancel
+            </button>
+          )}
+
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
+          >
+            {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
+          </button>
+        </div>
       </div>
 
       {errorMsg && (

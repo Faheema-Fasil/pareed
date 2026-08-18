@@ -1,30 +1,42 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
+import { getAllServicesAPI } from "../services/functions/serviceFunctions"
+import { getFullImageUrl } from "../Admin/components/common/ImageUploadField"
 
-const services = [
-    {
-        number: "01",
-        title: "Wholesale Seafood",
-        description:
-            "Fresh seafood supplied to restaurants, supermarkets, retailers and commercial buyers.",
-        image: "/assets/services/wholesale-seafood.jpg",
-    },
-    {
-        number: "02",
-        title: "Fresh Fish Supply",
-        description:
-            "Carefully selected fresh fish with a focus on quality, freshness and consistency.",
-        image: "/assets/services/fresh-fish.jpg",
-    },
-    {
-        number: "03",
-        title: "Reliable Distribution",
-        description:
-            "Dependable seafood supply solutions designed around your business requirements.",
-        image: "/assets/services/seafood-distribution.jpg",
-    },
-]
+const defaultServices = []
 
 function Services() {
+    const [servicesList, setServicesList] = useState(defaultServices)
+
+    useEffect(() => {
+        fetchServices()
+    }, [])
+
+    const fetchServices = async () => {
+        try {
+            const res = await getAllServicesAPI()
+            if (res && res.status >= 200 && res.status < 300) {
+                const data = res.data?.data || res.data
+                if (Array.isArray(data) && data.length > 0) {
+                    const sorted = [...data].sort((a, b) => {
+                        if (a.createdAt && b.createdAt) {
+                            return new Date(b.createdAt) - new Date(a.createdAt)
+                        }
+                        return (b._id || '').localeCompare(a._id || '')
+                    })
+                    setServicesList(
+                        sorted.map((item, idx) => ({
+                            number: String(idx + 1).padStart(2, '0'),
+                            title: item.title || '',
+                            description: item.description || '',
+                            image: getFullImageUrl(item.image || item.imageUrl || ''),
+                        }))
+                    )
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching services:', err)
+        }
+    }
     return (
         <section
             id="services"
@@ -58,9 +70,9 @@ function Services() {
                 {/* Services Grid */}
                 <div className="grid grid-cols-1 gap-[18px] md:grid-cols-2">
 
-                    {services.map((service) => (
+                    {servicesList.map((service, sIdx) => (
                         <article
-                            key={service.number}
+                            key={service.number || sIdx}
                             className="group relative min-h-[300px] overflow-hidden bg-[#0B2A4A] text-white"
                         >
 

@@ -1,4 +1,4 @@
-import { deleteAPI, getAPI, patchAPI, postAPI } from '../commonAPI'
+import { deleteAPI, getAPI, patchAPI, postAPI, putAPI } from '../commonAPI'
 import { SERVER_URL } from '../server_url'
 import { getAuthHeader } from './userFunctions'
 
@@ -27,7 +27,7 @@ export const getAllInquiriesAPI = async (tokenOrHeader) => {
 
 /**
  * @desc    Update inquiry status (e.g., 'Replied', 'Pending')
- * @route   PATCH /api/inquiries/:id
+ * @route   PUT /api/inquiries/:id
  * @access  Private (Admin)
  */
 export const updateInquiryStatusAPI = async (id, statusData, tokenOrHeader) => {
@@ -36,7 +36,7 @@ export const updateInquiryStatusAPI = async (id, statusData, tokenOrHeader) => {
       ? { Authorization: `Bearer ${tokenOrHeader}` }
       : tokenOrHeader || getAuthHeader()
 
-  return await patchAPI(`${SERVER_URL}/api/inquiries/${id}`, statusData, header)
+  return await putAPI(`${SERVER_URL}/api/inquiries/${id}`, statusData, header)
 }
 
 /**
