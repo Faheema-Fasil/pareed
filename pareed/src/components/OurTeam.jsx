@@ -1,6 +1,8 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { getAllTeamAPI } from '../services/functions/teamFunctions'
+import { getFullImageUrl } from '../Admin/components/common/ImageUploadField'
 
-const teamMembers = [
+const defaultTeamMembers = [
   {
     initials: 'PK',
     name: 'Pareed Kunnumpuram',
@@ -21,7 +23,47 @@ const teamMembers = [
   },
 ]
 
+export const getInitials = (name) => {
+  if (!name || typeof name !== 'string') return ''
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return ''
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase()
+}
+
 function OurTeam() {
+  const [teamList, setTeamList] = useState(defaultTeamMembers)
+
+  useEffect(() => {
+    fetchTeam()
+  }, [])
+
+  const fetchTeam = async () => {
+    try {
+      const res = await getAllTeamAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (Array.isArray(data) && data.length > 0) {
+          const sorted = [...data].sort((a, b) => (a.order || 0) - (b.order || 0))
+          setTeamList(
+            sorted.map((item) => {
+              const name = item.name || ''
+              return {
+                _id: item._id,
+                name: name,
+                role: item.role || '',
+                initials: getInitials(name) || item.initials || 'PK',
+                photo: item.photo || item.photoUrl || item.image || '',
+              }
+            })
+          )
+        }
+      }
+    } catch (err) {
+      console.error('Error loading team on site:', err)
+    }
+  }
+
   return (
     <section id="team" className="bg-white py-20 md:py-28 overflow-hidden">
       <div className="container mx-auto">
@@ -38,44 +80,53 @@ function OurTeam() {
               behind Pareed.
             </h2>
           </div>
-          <p className="max-w-[480px] text-muted text-[15px] sm:text-[16px] leading-[1.8]">
-            Use professional client-provided portraits in production. The prototype deliberately avoids fabricated corporate faces.
+          <p className="max-w-[480px] text-[#647483] text-[15px] sm:text-[16px] leading-[1.8]">
+            Experienced leadership committed to quality seafood sourcing, customer relationships and dependable wholesale distribution across the UAE.
           </p>
         </div>
 
         {/* Team Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-          {teamMembers.map((member) => (
-            <article
-              key={member.name}
-              className="border border-[#DCE6EC] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-navy/5 group overflow-hidden"
-            >
-              {/* Monogram / Portrait Placeholder */}
-              <div className="h-[320px] sm:h-[360px] bg-gradient-to-br from-[#EEF3F5] to-[#D9E7EE] flex items-center justify-center text-navy font-serif cormorant-garamond-extrabold text-[64px] font-semibold select-none overflow-hidden">
-                {member.photo ? (
-                  <img
-                    src={member.photo}
-                    alt={member.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <span className="group-hover:scale-105 transition-transform duration-500">
-                    {member.initials}
-                  </span>
-                )}
-              </div>
+          {teamList.map((member, mIdx) => {
+            const photoSrc = member.photo ? getFullImageUrl(member.photo) : ''
+            const memberInitials = getInitials(member.name) || member.initials || 'PK'
 
-              {/* Member Info */}
-              <div className="p-6 sm:p-7 bg-white">
-                <h3 className="font-serif cormorant-garamond-extrabold text-[28px] sm:text-[30px] font-semibold text-navy leading-[1.1] mb-2">
-                  {member.name}
-                </h3>
-                <p className="text-gold text-[11px] font-extrabold tracking-[0.14em] uppercase manrope-extrabold">
-                  {member.role}
-                </p>
-              </div>
-            </article>
-          ))}
+            return (
+              <article
+                key={member._id || member.name || mIdx}
+                className="border border-[#DCE6EC] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-navy/5 group overflow-hidden"
+              >
+                {/* Monogram / Portrait Placeholder */}
+                <div className="h-[320px] sm:h-[360px] bg-gradient-to-br from-[#EEF3F5] to-[#D9E7EE] flex items-center justify-center text-navy font-serif cormorant-garamond-extrabold text-[64px] font-semibold select-none overflow-hidden">
+                  {photoSrc ? (
+                    <img
+                      src={photoSrc}
+                      alt={member.name}
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                      }}
+                    />
+                  ) : (
+                    <span className="group-hover:scale-105 transition-transform duration-500">
+                      {memberInitials}
+                    </span>
+                  )}
+                </div>
+
+                {/* Member Info */}
+                <div className="p-6 sm:p-7 bg-white">
+                  <h3 className="font-serif cormorant-garamond-extrabold text-[28px] sm:text-[30px] font-semibold text-navy leading-[1.1] mb-2">
+                    {member.name}
+                  </h3>
+                  <p className="text-gold text-[11px] font-extrabold tracking-[0.14em] uppercase manrope-extrabold">
+                    {member.role}
+                  </p>
+                </div>
+              </article>
+            )
+          })}
         </div>
 
       </div>

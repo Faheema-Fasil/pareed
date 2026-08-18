@@ -8,6 +8,14 @@ import {
 } from '../../services/functions/teamFunctions'
 import { uploadImageAPI } from '../../services/functions/uploadFunctions'
 
+export const getInitials = (name) => {
+  if (!name || typeof name !== 'string') return ''
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return ''
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase()
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase()
+}
+
 export default function TeamManager() {
   const [members, setMembers] = useState([])
   const [originalMembers, setOriginalMembers] = useState([])
@@ -36,7 +44,7 @@ export default function TeamManager() {
             _id: item._id,
             name: item.name || '',
             role: item.role || item.designation || 'EXECUTIVE',
-            initials: item.initials || 'PK',
+            initials: getInitials(item.name) || item.initials || 'PK',
             photo: item.photo || item.imageUrl || '',
             photoFile: null,
           }))
@@ -86,18 +94,9 @@ export default function TeamManager() {
       updated[index].photoFile = file || null
     }
 
-    // Auto-generate initials if editing name and initials field is empty or matching old initials
-    if (field === 'name' && (!updated[index].initials || updated[index].initials.length <= 3)) {
-      const generated = value
-        .trim()
-        .split(/\s+/)
-        .map((word) => word[0])
-        .join('')
-        .slice(0, 3)
-        .toUpperCase()
-      if (generated) {
-        updated[index].initials = generated
-      }
+    // Automatically generate initials from the full name
+    if (field === 'name') {
+      updated[index].initials = getInitials(value)
     }
 
     setMembers(updated)
@@ -185,10 +184,6 @@ export default function TeamManager() {
         setErrorMsg(`Team Member #${i + 1} (${item.name}) is missing a Designation / Role.`)
         return
       }
-      if (!item.initials || !item.initials.trim()) {
-        setErrorMsg(`Team Member #${i + 1} (${item.name}) is missing Initials.`)
-        return
-      }
     }
 
     setLoading(true)
@@ -217,7 +212,7 @@ export default function TeamManager() {
         const payload = {
           name: item.name.trim(),
           role: item.role.trim(),
-          initials: item.initials.trim(),
+          initials: getInitials(item.name) || item.initials || 'PK',
           photo: finalPhoto,
         }
 
@@ -234,7 +229,7 @@ export default function TeamManager() {
       fetchTeam()
     } catch (err) {
       console.error('Error saving team:', err)
-      setErrorMsg('Failed to save some team members to server.')
+      setErrorMsg('Failed to save team members to server.')
     } finally {
       setLoading(false)
     }
@@ -328,25 +323,15 @@ export default function TeamManager() {
               ✕
             </button>
 
-            {/* Initials & Full Name */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-1">
-                <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
-                  INITIALS *
-                </label>
-                <input
-                  type="text"
-                  maxLength="3"
-                  value={member.initials}
-                  onChange={(e) =>
-                    handleChange(index, 'initials', e.target.value.toUpperCase())
-                  }
-                  placeholder="PK"
-                  className="w-full border border-[#DCE6EC] px-3 py-2 text-[14px] font-bold text-ink outline-none focus:border-[#1976A8] rounded-[2px] text-center"
-                />
+            {/* Full Name & Auto Monogram */}
+            <div className="flex items-center gap-3">
+              <div
+                className="w-11 h-11 rounded-full bg-[#EEF3F5] border border-[#DCE6EC] text-navy font-serif font-bold text-[16px] flex items-center justify-center shrink-0 shadow-2xs select-none"
+                title="Auto-generated Monogram Initials"
+              >
+                {getInitials(member.name) || member.initials || 'PK'}
               </div>
-
-              <div className="col-span-2">
+              <div className="flex-1">
                 <label className="text-[10px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1">
                   FULL NAME *
                 </label>
@@ -354,7 +339,7 @@ export default function TeamManager() {
                   type="text"
                   value={member.name}
                   onChange={(e) => handleChange(index, 'name', e.target.value)}
-                  placeholder="Member name"
+                  placeholder="e.g. Pareed Kunnumpuram"
                   className="w-full border border-[#DCE6EC] px-3 py-2 text-[14px] text-ink outline-none focus:border-[#1976A8] rounded-[2px]"
                 />
               </div>
