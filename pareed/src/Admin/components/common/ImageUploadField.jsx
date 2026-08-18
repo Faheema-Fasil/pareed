@@ -76,14 +76,14 @@ export default function ImageUploadField({
   return (
     <div className={`space-y-2 w-full ${className}`}>
       {/* Label and Mode Switch */}
-      <div className="flex flex-wrap items-center justify-between gap-1">
-        <label className="text-[10px] sm:text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block">
+      <div className="flex justify-between items-center mb-1.5 gap-2 min-w-0">
+        <label className="text-[10px] sm:text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block truncate flex-1 min-w-0" title={label}>
           {label}
         </label>
         <button
           type="button"
           onClick={() => setIsUrlMode(!isUrlMode)}
-          className="text-[10px] sm:text-[11px] font-bold text-[#1976A8] hover:text-navy transition-colors cursor-pointer"
+          className="text-[10px] sm:text-[11px] font-bold text-[#1976A8] hover:text-navy transition-colors cursor-pointer shrink-0 whitespace-nowrap"
         >
           {isUrlMode ? 'Switch to Upload' : 'Switch to URL'}
         </button>

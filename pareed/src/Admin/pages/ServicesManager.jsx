@@ -352,10 +352,10 @@ export default function ServicesManager() {
           <button
             type="button"
             onClick={handleAddService}
-            className="bg-navy hover:bg-[#051627] text-white font-extrabold text-[12px] uppercase tracking-wider px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
+            className="bg-navy hover:bg-[#051627] text-white font-extrabold text-[12px] uppercase tracking-wider px-3 sm:px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
           >
-            <span>+</span>
-            <span>Add Service</span>
+            <span>+ Add</span>
+            <span className='hidden sm:inline'> Service</span>
           </button>
 
           {isDirty && (
@@ -363,7 +363,7 @@ export default function ServicesManager() {
               type="button"
               onClick={handleCancelChanges}
               disabled={loading}
-              className="border border-[#DCE6EC] bg-white hover:bg-slate-50 text-navy font-extrabold text-[12px] uppercase tracking-wider px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-xs disabled:opacity-50 animate-in fade-in"
+              className="border border-[#DCE6EC] bg-white hover:bg-slate-50 text-navy font-extrabold text-[12px] uppercase tracking-wider px-3 sm:px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-xs disabled:opacity-50 animate-in fade-in"
             >
               Cancel
             </button>
@@ -373,7 +373,7 @@ export default function ServicesManager() {
             type="button"
             onClick={handleSave}
             disabled={loading}
-            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
+            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-3 sm:px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
           >
             {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
           </button>
@@ -381,7 +381,7 @@ export default function ServicesManager() {
       </div>
 
       {/* Category Manager Modal */}
-      {showCategoryModal && (
+      {/* {showCategoryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white border border-[#DCE6EC] w-full max-w-lg p-6 rounded-[3px] shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -415,7 +415,7 @@ export default function ServicesManager() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {errorMsg && (
         <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-[2px] font-medium">
@@ -434,25 +434,25 @@ export default function ServicesManager() {
         {services.map((service, index) => (
           <div
             key={service.id || index}
-            className="bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4 relative group"
+            className="bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4 relative group overflow-hidden"
           >
             {/* Remove Service Button (Triggers Confirmation) */}
             <button
               type="button"
               onClick={() => promptDeleteService(service)}
-              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center text-[12px] transition-colors cursor-pointer"
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center text-[12px] transition-colors cursor-pointer z-10"
               title="Remove this service"
             >
               ✕
             </button>
 
             {/* Header / Number & Title Preview */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 pr-8">
-              <div className="flex items-center gap-3">
-                <span className="text-[12px] font-extrabold tracking-[0.16em] text-gold uppercase manrope-extrabold bg-[#071D33] px-2.5 py-1 rounded-[2px]">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 pr-8 min-w-0">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <span className="text-[12px] font-extrabold tracking-[0.16em] text-gold uppercase manrope-extrabold bg-[#071D33] px-2.5 py-1 rounded-[2px] shrink-0">
                   {String(index + 1).padStart(2, '0')} / {service.category || 'SUPPLY'}
                 </span>
-                <h3 className="font-serif font-bold text-[17px] text-navy truncate max-w-[200px]">
+                <h3 className="font-serif font-bold text-[17px] text-navy truncate min-w-0 flex-1" title={service.title}>
                   {service.title || `Service #${String(index + 1).padStart(2, '0')}`}
                 </h3>
               </div>

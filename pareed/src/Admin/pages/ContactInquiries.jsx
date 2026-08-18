@@ -58,6 +58,7 @@ export default function ContactInquiries() {
             if (!prev) return formatted[0] || null
             return formatted.find((f) => f.id === prev.id || f._id === prev._id) || formatted[0] || null
           })
+          window.dispatchEvent(new Event('inquiry_updated'))
         }
       }
     } catch (err) {
@@ -75,6 +76,7 @@ export default function ContactInquiries() {
     if (selectedLead && (selectedLead.id === lead.id || selectedLead._id === lead._id)) {
       setSelectedLead({ ...selectedLead, status: newStatus })
     }
+    window.dispatchEvent(new Event('inquiry_updated'))
 
     if (lead._id) {
       try {
@@ -103,6 +105,7 @@ export default function ContactInquiries() {
     if (selectedLead && (selectedLead.id === lead.id || selectedLead._id === lead._id)) {
       setSelectedLead(updated[0] || null)
     }
+    window.dispatchEvent(new Event('inquiry_updated'))
   }
 
   const filteredInquiries =

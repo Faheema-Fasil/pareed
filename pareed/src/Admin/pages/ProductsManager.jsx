@@ -320,14 +320,14 @@ export default function ProductsManager() {
           </p>
         </div>
 
-        <div className="flex justify-end w-full items-center gap-3 flex-wrap">
+        <div className="flex justify-end w-full lg:w-full items-center gap-3 flex-wrap">
           <button
             type="button"
             onClick={handleAddProduct}
-            className="bg-navy hover:bg-[#051627] text-white font-extrabold text-[12px] uppercase tracking-wider px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
+            className="bg-navy hover:bg-[#051627] text-white font-extrabold text-[12px] uppercase tracking-wider px-2 sm:px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
           >
-            <span>+</span>
-            <span>Add Product</span>
+            <span>+ Add</span>
+            <span className='hidden md:inline'> Product</span>
           </button>
 
           {isDirty && (
@@ -335,7 +335,7 @@ export default function ProductsManager() {
               type="button"
               onClick={handleCancelChanges}
               disabled={loading}
-              className="border border-[#DCE6EC] bg-white hover:bg-slate-50 text-navy font-extrabold text-[12px] uppercase tracking-wider px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-xs disabled:opacity-50 animate-in fade-in"
+              className="border border-[#DCE6EC] bg-white hover:bg-slate-50 text-navy font-extrabold text-[12px] uppercase tracking-wider px-2 sm:px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-xs disabled:opacity-50 animate-in fade-in"
             >
               Cancel
             </button>
@@ -345,7 +345,7 @@ export default function ProductsManager() {
             type="button"
             onClick={handleSave}
             disabled={loading}
-            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-6 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
+            className="bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-2 sm:px-5 py-3 rounded-[2px] transition-all cursor-pointer shadow-sm disabled:opacity-50"
           >
             {loading ? 'Saving...' : saved ? 'Changes Saved ✓' : 'Save Changes'}
           </button>
@@ -365,29 +365,29 @@ export default function ProductsManager() {
       )}
 
       {/* Products Grid */}
-      <div ref={topRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6 scroll-mt-6">
+      <div ref={topRef} className="grid grid-cols-1  lg:grid-cols-2 gap-6 scroll-mt-6">
         {products.map((product, index) => (
           <div
             key={product.id || index}
-            className="bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4 relative group"
+            className="bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4 relative group overflow-hidden"
           >
             {/* Remove Product Button (Triggers Confirmation) */}
             <button
               type="button"
               onClick={() => promptDeleteProduct(product)}
-              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center text-[12px] transition-colors cursor-pointer"
+              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center text-[12px] transition-colors cursor-pointer z-10"
               title="Remove this product"
             >
               ✕
             </button>
 
             {/* Header: Badge & Name */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 pr-8">
-              <div className="flex items-center gap-3">
-                <span className="font-serif font-bold text-gold text-[22px]">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 pr-8 min-w-0">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <span className="font-serif font-bold text-gold text-[22px] shrink-0">
                   {String(index + 1).padStart(2, '0')}
                 </span>
-                <h3 className="font-serif font-bold text-[18px] text-navy truncate">
+                <h3 className="font-serif font-bold text-[18px] text-navy truncate min-w-0 flex-1" title={product.name}>
                   {product.name || `Product #${String(index + 1).padStart(2, '0')}`}
                 </h3>
               </div>
@@ -468,7 +468,7 @@ export default function ProductsManager() {
               {/* Product Image Upload */}
               <div className="pt-2 border-t border-slate-100">
                 <ImageUploadField
-                  label={`PRODUCT PHOTO (${product.name || 'ITEM'}) *`}
+                  label={`PRODUCT PHOTO (${product.name ? (product.name.length > 15 ? product.name.slice(0, 15) + '...' : product.name) : 'ITEM'}) *`}
                   value={product.image}
                   onChange={(newImg, file) =>
                     handleProductChange(index, 'image', newImg, file)

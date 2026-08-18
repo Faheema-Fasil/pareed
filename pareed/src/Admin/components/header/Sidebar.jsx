@@ -1,7 +1,8 @@
-import React from 'react'
-import { NavLink, Link } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { NavLink, Link, useLocation } from 'react-router-dom'
+import { getAllInquiriesAPI } from '../../../services/functions/inquiryFunctions'
 
-const navLinks = [
+const baseNavLinks = [
   {
     to: '/admin/dashboard',
     label: 'Dashboard',
@@ -77,7 +78,7 @@ const navLinks = [
   {
     to: '/admin/dashboard/inquiries',
     label: 'Contact & Leads',
-    badge: '3 New',
+    isLeadLink: true,
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -106,6 +107,42 @@ const navLinks = [
 ]
 
 export default function Sidebar({ isOpen, onClose }) {
+  const [newCount, setNewCount] = useState(0)
+  const location = useLocation()
+
+  const fetchInquiryCount = async () => {
+    try {
+      const res = await getAllInquiriesAPI()
+      if (res && res.status >= 200 && res.status < 300) {
+        const data = res.data?.data || res.data
+        if (Array.isArray(data)) {
+          const unread = data.filter(
+            (item) => !item.status || item.status.toLowerCase() === 'new'
+          ).length
+          setNewCount(unread)
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch inquiry count for sidebar:', err)
+    }
+  }
+
+  useEffect(() => {
+    fetchInquiryCount()
+
+    // Listen for custom inquiry update events
+    const handleUpdate = () => fetchInquiryCount()
+    window.addEventListener('inquiry_updated', handleUpdate)
+
+    // Poll every 30 seconds for live updates
+    const interval = setInterval(fetchInquiryCount, 30000)
+
+    return () => {
+      window.removeEventListener('inquiry_updated', handleUpdate)
+      clearInterval(interval)
+    }
+  }, [location.pathname])
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -147,7 +184,7 @@ export default function Sidebar({ isOpen, onClose }) {
             <div className="px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.16em] text-gold manrope-extrabold">
               CONTENT MANAGEMENT
             </div>
-            {navLinks.map((link) => (
+            {baseNavLinks.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
@@ -165,9 +202,9 @@ export default function Sidebar({ isOpen, onClose }) {
                   {link.icon}
                   <span>{link.label}</span>
                 </span>
-                {link.badge && (
-                  <span className="bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">
-                    {link.badge}
+                {link.isLeadLink && newCount > 0 && (
+                  <span className="bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">
+                    {newCount} New
                   </span>
                 )}
               </NavLink>
