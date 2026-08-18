@@ -108,17 +108,11 @@ export default function Sidebar({ isOpen, onClose }) {
           {/* Logo Brand Header */}
           <div className="h-18 flex items-center justify-between px-6 border-b border-white/10">
             <Link to="/admin/dashboard" className="flex items-center gap-3">
-              <span className="w-8 h-8 border border-gold/80 rounded-full flex items-center justify-center text-gold font-serif text-[18px] font-bold">
-                P
-              </span>
-              <div>
-                <b className="font-serif text-[18px] leading-none tracking-[0.06em] text-white block">
-                  PAREED
-                </b>
-                <small className="text-[8px] tracking-[0.2em] text-gold uppercase font-bold">
-                  CMS PORTAL
-                </small>
-              </div>
+              <img
+                src="/PAREED FISH TRADING L.L.C 2026.png"
+                alt="Pareed Fish Trading"
+                className="h-10 w-auto max-w-[180px] object-contain"
+              />
             </Link>
 
             {/* Mobile close button */}

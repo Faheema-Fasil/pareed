@@ -41,20 +41,12 @@ function Header() {
         <div className="flex items-center justify-between gap-6 lg:gap-[30px]">
 
           {/* Logo */}
-          <a href="#home" className="flex items-center gap-[11px] font-extrabold tracking-[0.08em] shrink-0">
-            <span className="w-[42px] h-[42px] border border-gold/80 rounded-full flex items-center justify-center text-gold font-serif text-[24px]">
-              P
-            </span>
-            <span className="flex flex-col">
-              <b className={`font-serif text-[23px] sm:text-[25px] leading-[0.9] tracking-[0.06em] ${
-                isScrolled ? 'text-navy' : 'text-white'
-              }`}>
-                PAREED
-              </b>
-              <small className="text-[9px] tracking-[0.2em] text-gold uppercase mt-0.5">
-                FISH TRADING L.L.C
-              </small>
-            </span>
+          <a href="#home" className="flex items-center gap-2 shrink-0">
+            <img
+              src="/PAREED FISH TRADING L.L.C 2026.png"
+              alt="Pareed Fish Trading"
+              className="h-11 sm:h-13 w-auto max-w-[220px] object-contain"
+            />
           </a>
 
           {/* Desktop Navigation */}

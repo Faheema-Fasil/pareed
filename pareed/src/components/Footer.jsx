@@ -20,12 +20,11 @@ function Footer() {
           
           {/* Brand Info */}
           <div>
-            <div className="font-serif cormorant-garamond-extrabold text-[35px] font-semibold tracking-[0.06em] text-white leading-none">
-              PAREED
-            </div>
-            <div className="text-gold text-[10px] tracking-[0.18em] font-extrabold uppercase manrope-extrabold mt-1.5">
-              FISH TRADING L.L.C
-            </div>
+            <img
+              src="/PAREED FISH TRADING L.L.C 2026.png"
+              alt="Pareed Fish Trading Logo"
+              className="h-12 w-auto max-w-[200px] object-contain mb-3"
+            />
             <p className="text-[#C8D6DF] text-[13px] leading-[2] mt-4 max-w-[320px]">
               Fresh &amp; Premium Seafood Wholesale
             </p>

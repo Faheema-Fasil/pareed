@@ -43,7 +43,7 @@ export default function HeroSettings() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="adminContainer space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#DCE6EC] pb-5">
         <div>

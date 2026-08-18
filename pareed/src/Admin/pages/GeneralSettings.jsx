@@ -3,9 +3,6 @@ import ImageUploadField from '../components/common/ImageUploadField'
 
 export default function GeneralSettings() {
   const [settings, setSettings] = useState({
-    companyName: 'PAREED',
-    companySubtitle: 'FISH TRADING L.L.C',
-    logoMarkLetter: 'P',
     logoImageUrl: '/PAREED FISH TRADING L.L.C 2026.png',
     phone1: '+971 50 181 1875',
     phone2: '+971 50 602 7334',
@@ -49,7 +46,7 @@ export default function GeneralSettings() {
             Logo &amp; Brand Settings
           </h1>
           <p className="text-[13px] text-[#647483]">
-            Update your header logo, footer branding, and global contact credentials.
+            Update your header &amp; footer brand logo and global contact credentials.
           </p>
         </div>
 
@@ -72,58 +69,15 @@ export default function GeneralSettings() {
         {/* Brand & Logo Settings */}
         <div className="bg-white border border-[#DCE6EC] p-6 sm:p-8 rounded-[3px] shadow-xs space-y-6">
           <h2 className="font-serif text-[20px] font-bold text-navy border-b border-slate-100 pb-3">
-            Brand Identity &amp; Logo
+            Brand Logo
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-                COMPANY TITLE
-              </label>
-              <input
-                type="text"
-                name="companyName"
-                value={settings.companyName}
-                onChange={handleChange}
-                className="w-full border border-[#DCE6EC] px-4 py-3 text-[14px] font-serif font-bold text-navy outline-none focus:border-[#1976A8] rounded-[2px]"
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-                LEGAL SUBTITLE
-              </label>
-              <input
-                type="text"
-                name="companySubtitle"
-                value={settings.companySubtitle}
-                onChange={handleChange}
-                className="w-full border border-[#DCE6EC] px-4 py-3 text-[14px] text-ink outline-none focus:border-[#1976A8] rounded-[2px]"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-[11px] font-extrabold tracking-[0.12em] text-gold uppercase manrope-extrabold block mb-1.5">
-                CIRCULAR LOGO MARK INITIAL
-              </label>
-              <input
-                type="text"
-                maxLength="2"
-                name="logoMarkLetter"
-                value={settings.logoMarkLetter}
-                onChange={handleChange}
-                className="w-24 border border-[#DCE6EC] px-4 py-3 text-[18px] font-bold text-gold font-serif outline-none focus:border-[#1976A8] rounded-[2px] text-center"
-              />
-            </div>
-
-            {/* Logo Image Upload */}
-            <div className="md:col-span-2 pt-2 border-t border-slate-100">
-              <ImageUploadField
-                label="UPLOAD OFFICIAL BRAND LOGO (PNG / SVG)"
-                value={settings.logoImageUrl}
-                onChange={handleLogoChange}
-              />
-            </div>
+          <div>
+            <ImageUploadField
+              label="UPLOAD OFFICIAL BRAND LOGO (PNG / SVG)"
+              value={settings.logoImageUrl}
+              onChange={handleLogoChange}
+            />
           </div>
         </div>
 
