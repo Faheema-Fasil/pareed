@@ -8,6 +8,7 @@ import {
 export default function ContactInquiries() {
   const [inquiries, setInquiries] = useState([])
   const [selectedLead, setSelectedLead] = useState(null)
+  const [showMobileDetail, setShowMobileDetail] = useState(false)
   const [loading, setLoading] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [filterStatus, setFilterStatus] = useState('All')
@@ -68,6 +69,11 @@ export default function ContactInquiries() {
     }
   }
 
+  const handleSelectLead = (lead) => {
+    setSelectedLead(lead)
+    setShowMobileDetail(true)
+  }
+
   const handleStatusChange = async (lead, newStatus) => {
     const updated = inquiries.map((item) =>
       item.id === lead.id || item._id === lead._id ? { ...item, status: newStatus } : item
@@ -104,6 +110,7 @@ export default function ContactInquiries() {
     setInquiries(updated)
     if (selectedLead && (selectedLead.id === lead.id || selectedLead._id === lead._id)) {
       setSelectedLead(updated[0] || null)
+      setShowMobileDetail(false)
     }
     window.dispatchEvent(new Event('inquiry_updated'))
   }
@@ -112,6 +119,104 @@ export default function ContactInquiries() {
     filterStatus === 'All'
       ? inquiries
       : inquiries.filter((item) => item.status?.toLowerCase() === filterStatus.toLowerCase())
+
+  // Lead Details Card JSX component used for both Desktop sidebar & Mobile Modal
+  const renderLeadDetailsContent = (lead, isModal = false) => {
+    if (!lead) {
+      return <p className="text-gray-400 text-center py-8">Select an inquiry to view details</p>
+    }
+
+    return (
+      <div className="space-y-4 text-[13px]">
+        {/* Status Switcher */}
+        <div>
+          <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block mb-1">
+            STATUS
+          </span>
+          <select
+            value={lead.status || 'New'}
+            onChange={(e) => handleStatusChange(lead, e.target.value)}
+            className="w-full border border-[#DCE6EC] px-3 py-2 text-[13px] font-bold text-navy rounded-[2px] outline-none focus:border-[#1976A8] bg-white cursor-pointer"
+          >
+            <option value="New">New</option>
+            <option value="Contacted">Contacted</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+
+        <div>
+          <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">NAME</span>
+          <p className="font-bold text-navy text-[16px] break-words">{lead.name}</p>
+        </div>
+
+        <div>
+          <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">COMPANY</span>
+          <p className="font-semibold text-ink break-words">{lead.company || 'Not Specified'}</p>
+        </div>
+
+        <div>
+          <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">PHONE</span>
+          <p className="font-mono text-ink">
+            <a href={`tel:${lead.phone}`} className="text-[#1976A8] font-bold hover:underline">
+              {lead.phone}
+            </a>
+          </p>
+        </div>
+
+        <div>
+          <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">EMAIL</span>
+          <p className="font-mono text-ink break-all">
+            <a href={`mailto:${lead.email}`} className="text-[#1976A8] font-bold hover:underline">
+              {lead.email}
+            </a>
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+          <div>
+            <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">BUSINESS</span>
+            <p className="font-bold text-navy break-words">{lead.business || 'Commercial'}</p>
+          </div>
+          <div>
+            <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">REQUIREMENT</span>
+            <p className="font-bold text-navy break-words">{lead.requirement || 'Seafood'}</p>
+          </div>
+        </div>
+
+        <div className="pt-2 border-t border-slate-100">
+          <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block mb-1">
+            MESSAGE / REQUIREMENTS
+          </span>
+          <div className="p-3.5 bg-[#F7F9FA] border border-slate-200 rounded-[2px] text-ink leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto break-words">
+            {lead.message || 'No additional message provided.'}
+          </div>
+        </div>
+
+        <div className="pt-2 flex gap-2 flex-wrap">
+          <a
+            href={`tel:${lead.phone}`}
+            className="flex-1 min-w-[100px] text-center bg-gold hover:bg-gold/90 text-white font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider transition-colors shadow-xs"
+          >
+            Call Client
+          </a>
+          <a
+            href={`mailto:${lead.email}`}
+            className="flex-1 min-w-[100px] text-center border border-navy text-navy font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider hover:bg-navy hover:text-white transition-colors"
+          >
+            Send Email
+          </a>
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(lead)}
+            className="text-red-600 hover:bg-red-50 border border-red-200 px-3.5 py-2.5 rounded-[2px] text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="adminContainer space-y-6">
@@ -129,7 +234,7 @@ export default function ContactInquiries() {
           </p>
         </div>
 
-        <div className="flex justify-end w-full items-center gap-3">
+        <div className="flex justify-end w-full sm:w-auto items-center gap-3">
           <button
             type="button"
             onClick={fetchInquiries}
@@ -143,13 +248,13 @@ export default function ContactInquiries() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         {['All', 'New', 'Contacted', 'In Progress', 'Completed'].map((status) => (
           <button
             key={status}
             type="button"
             onClick={() => setFilterStatus(status)}
-            className={`px-4 py-2 rounded-[2px] text-[12px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-[2px] text-[11px] sm:text-[12px] font-bold uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer ${
               filterStatus === status
                 ? 'bg-navy text-white shadow-xs'
                 : 'bg-white border border-[#DCE6EC] text-[#647483] hover:text-navy hover:bg-slate-50'
@@ -183,9 +288,9 @@ export default function ContactInquiries() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Leads List */}
-          <div className="lg:col-span-2 bg-white border border-[#DCE6EC] rounded-[3px] shadow-xs overflow-hidden">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Leads List (Takes Full Width on Tablet/Phone & 1024px, 2/3 on Large Desktop) */}
+          <div className="xl:col-span-2 bg-white border border-[#DCE6EC] rounded-[3px] shadow-xs overflow-hidden">
             <div className="p-4 border-b border-slate-100 bg-[#F7F9FA] flex justify-between items-center">
               <span className="text-[12px] font-bold uppercase tracking-wider text-navy">
                 Inquiries List ({filteredInquiries.length})
@@ -195,22 +300,31 @@ export default function ContactInquiries() {
               </span>
             </div>
 
-            <div className="divide-y divide-slate-100 max-h-[650px] overflow-y-auto">
+            <div className="divide-y divide-slate-100 max-h-[700px] overflow-y-auto">
               {filteredInquiries.map((lead) => (
                 <div
                   key={lead.id}
-                  onClick={() => setSelectedLead(lead)}
+                  onClick={() => handleSelectLead(lead)}
                   className={`p-4 transition-colors cursor-pointer hover:bg-slate-50 ${
-                    selectedLead?.id === lead.id ? 'bg-[#EEF3F5] border-l-4 border-gold' : ''
+                    selectedLead?.id === lead.id ? 'xl:bg-[#EEF3F5] xl:border-l-4 xl:border-gold' : ''
                   }`}
                 >
-                  <div className="flex justify-between items-start mb-1">
-                    <h4 className="font-bold text-navy text-[15px]">{lead.name}</h4>
-                    <span className="text-[11px] text-[#647483]">{lead.date}</span>
+                  <div className="flex justify-between items-start gap-2 mb-1">
+                    <h4 className="font-bold text-navy text-[15px] truncate flex-1 min-w-0">
+                      {lead.name}
+                    </h4>
+                    <span className="text-[11px] text-[#647483] shrink-0">{lead.date}</span>
                   </div>
-                  <div className="text-[12px] text-[#647483] font-medium mb-2.5">
-                    {lead.company} • <span className="font-mono text-navy font-semibold">{lead.phone}</span>
+
+                  <div className="text-[12px] text-[#647483] font-medium mb-2.5 flex items-center justify-between flex-wrap gap-1">
+                    <span>
+                      {lead.company || 'Individual'} • <span className="font-mono text-navy font-semibold">{lead.phone}</span>
+                    </span>
+                    <span className="xl:hidden text-gold font-bold text-[11px] tracking-wider uppercase">
+                      View Details →
+                    </span>
                   </div>
+
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="bg-white border border-slate-200 text-[#1976A8] text-[10px] font-extrabold px-2.5 py-0.5 rounded-[2px] uppercase">
                       {lead.requirement || 'Seafood'}
@@ -237,8 +351,8 @@ export default function ContactInquiries() {
             </div>
           </div>
 
-          {/* Selected Lead Detail View */}
-          <div className="bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4">
+          {/* Desktop Persistent Detail View (Active on Large Screens 1280px+) */}
+          <div className="hidden xl:block bg-white border border-[#DCE6EC] p-6 rounded-[3px] shadow-xs space-y-4 h-fit sticky top-6">
             <h3 className="font-serif text-[20px] font-bold text-navy border-b border-slate-100 pb-3 flex justify-between items-center">
               <span>Lead Details</span>
               {selectedLead && (
@@ -258,96 +372,45 @@ export default function ContactInquiries() {
               )}
             </h3>
 
-            {selectedLead ? (
-              <div className="space-y-4 text-[13px]">
-                {/* Status Switcher */}
-                <div>
-                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block mb-1">
-                    STATUS
-                  </span>
-                  <select
-                    value={selectedLead.status || 'New'}
-                    onChange={(e) => handleStatusChange(selectedLead, e.target.value)}
-                    className="w-full border border-[#DCE6EC] px-3 py-2 text-[13px] font-bold text-navy rounded-[2px] outline-none focus:border-[#1976A8] bg-white cursor-pointer"
-                  >
-                    <option value="New">New</option>
-                    <option value="Contacted">Contacted</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                  </select>
-                </div>
+            {renderLeadDetailsContent(selectedLead, false)}
+          </div>
+        </div>
+      )}
 
-                <div>
-                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">NAME</span>
-                  <p className="font-bold text-navy text-[16px]">{selectedLead.name}</p>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">COMPANY</span>
-                  <p className="font-semibold text-ink">{selectedLead.company}</p>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">PHONE</span>
-                  <p className="font-mono text-ink">
-                    <a href={`tel:${selectedLead.phone}`} className="text-[#1976A8] font-bold hover:underline">
-                      {selectedLead.phone}
-                    </a>
-                  </p>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">EMAIL</span>
-                  <p className="font-mono text-ink">
-                    <a href={`mailto:${selectedLead.email}`} className="text-[#1976A8] font-bold hover:underline">
-                      {selectedLead.email}
-                    </a>
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
-                  <div>
-                    <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">BUSINESS</span>
-                    <p className="font-bold text-navy">{selectedLead.business}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block">REQUIREMENT</span>
-                    <p className="font-bold text-navy">{selectedLead.requirement}</p>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-slate-100">
-                  <span className="text-[10px] font-extrabold text-gold uppercase tracking-wider block mb-1">MESSAGE / REQUIREMENTS</span>
-                  <div className="p-3.5 bg-[#F7F9FA] border border-slate-200 rounded-[2px] text-ink leading-relaxed whitespace-pre-wrap">
-                    {selectedLead.message || 'No additional message provided.'}
-                  </div>
-                </div>
-
-                <div className="pt-2 flex gap-2 flex-wrap">
-                  <a
-                    href={`tel:${selectedLead.phone}`}
-                    className="flex-1 min-w-[100px] text-center bg-gold hover:bg-gold/90 text-white font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider transition-colors shadow-xs"
-                  >
-                    Call Client
-                  </a>
-                  <a
-                    href={`mailto:${selectedLead.email}`}
-                    className="flex-1 min-w-[100px] text-center border border-navy text-navy font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider hover:bg-navy hover:text-white transition-colors"
-                  >
-                    Send Email
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDelete(selectedLead)}
-                    className="text-red-600 hover:bg-red-50 border border-red-200 px-3.5 py-2.5 rounded-[2px] text-[11px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                  >
-                    Delete
-                  </button>
-                </div>
+      {/* Mobile, Tablet & 1024px Modal Drawer (Opens smoothly when clicking an inquiry) */}
+      {showMobileDetail && selectedLead && (
+        <div className="xl:hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white border border-[#DCE6EC] w-full max-w-lg max-h-[90vh] flex flex-col rounded-[4px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-slate-100 bg-[#F7F9FA] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMobileDetail(false)}
+                  className="text-[#1976A8] hover:text-navy font-bold text-[12px] uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                >
+                  <span>← Back</span>
+                </button>
+                <span className="text-slate-300">|</span>
+                <span className="font-serif font-bold text-[17px] text-navy">
+                  Inquiry Details
+                </span>
               </div>
-            ) : (
-              <p className="text-gray-400 text-center py-8">Select an inquiry to view details</p>
-            )}
+
+              <button
+                type="button"
+                onClick={() => setShowMobileDetail(false)}
+                className="w-8 h-8 rounded-full bg-slate-200/70 hover:bg-slate-300 text-slate-700 flex items-center justify-center text-[14px] cursor-pointer"
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1">
+              {renderLeadDetailsContent(selectedLead, true)}
+            </div>
           </div>
         </div>
       )}
@@ -393,3 +456,4 @@ export default function ContactInquiries() {
     </div>
   )
 }
+
