@@ -66,7 +66,7 @@ function HeroPage() {
       />
 
       {/* Hero Content Container */}
-      <div className="container mx-auto relative z-10 pt-[100px] flex flex-col justify-center">
+      <div className="container mx-auto relative z-10 md:pt-[50px] flex flex-col justify-center">
         <div className="max-w-[700px]">
           {/* Eyebrow */}
           <div className="text-gold text-[12px] manrope-extrabold font-extrabold tracking-[0.22em] uppercase mb-[18px]">
@@ -74,7 +74,7 @@ function HeroPage() {
           </div>
 
           {/* Heading */}
-          <h1 className="font-serif cormorant-garamond-extrabold text-[clamp(56px,7vw,96px)] font-semibold leading-[0.86] tracking-[-0.03em] text-white">
+          <h1 className="font-serif cormorant-garamond-extrabold text-[clamp(42px,7vw,96px)] font-semibold leading-[0.86] tracking-[-0.03em] text-white">
             {heroData.titleLine1 || 'Premium Seafood.'}
             {heroData.titleLine2 && (
               <>
