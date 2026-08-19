@@ -125,7 +125,7 @@ export default function AboutSettings() {
 
   if (isFetching) {
     return (
-      <div className="max-w-[1050px] mx-auto py-20 flex flex-col items-center justify-center space-y-4">
+      <div className="adminContainer mx-auto py-20 flex flex-col items-center justify-center space-y-4">
         <div className="w-10 h-10 border-4 border-gold/30 border-t-gold rounded-full animate-spin"></div>
         <p className="text-[13px] font-bold text-navy uppercase tracking-wider">
           Loading About Us Data...
@@ -135,7 +135,7 @@ export default function AboutSettings() {
   }
 
   return (
-    <div className="max-w-[1050px] mx-auto space-y-6">
+    <div className="adminContainer mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between lg:items-center items-start gap-4 border-b border-[#DCE6EC] pb-5">
         <div>

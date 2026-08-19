@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { NavLink, Link, useLocation } from 'react-router-dom'
+import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom'
 import { getAllInquiriesAPI } from '../../../services/functions/inquiryFunctions'
+import { logoutUser } from '../../../services/functions/userFunctions'
 
 const baseNavLinks = [
   {
@@ -108,7 +109,20 @@ const baseNavLinks = [
 
 export default function Sidebar({ isOpen, onClose }) {
   const [newCount, setNewCount] = useState(0)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true)
+  }
+
+  const executeLogout = () => {
+    logoutUser()
+    setShowLogoutModal(false)
+    if (onClose) onClose()
+    navigate('/admin/login', { replace: true })
+  }
 
   const fetchInquiryCount = async () => {
     try {
@@ -180,7 +194,7 @@ export default function Sidebar({ isOpen, onClose }) {
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-4 space-y-1.5 overflow-y-auto max-h-[calc(100vh-160px)]">
+          <nav className="p-4 space-y-1.5 overflow-y-auto max-h-[calc(100vh-210px)]">
             <div className="px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.16em] text-gold manrope-extrabold">
               CONTENT MANAGEMENT
             </div>
@@ -213,18 +227,68 @@ export default function Sidebar({ isOpen, onClose }) {
         </div>
 
         {/* Bottom User / Quick Action */}
-        <div className="p-4 border-t border-white/10 bg-[#051627]">
+        <div className="p-4 border-t border-white/10 bg-[#051627] space-y-2">
           <Link
             to="/"
             target="_blank"
             rel="noreferrer"
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-[2px] border border-gold/40 text-gold hover:bg-gold hover:text-white text-[12px] font-extrabold tracking-wider uppercase transition-all duration-200"
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-[2px] border border-gold/40 text-gold hover:bg-gold hover:text-white text-[11px] font-extrabold tracking-wider uppercase transition-all duration-200"
           >
             <span>Live Website</span>
             <span>↗</span>
           </Link>
+
+          <button
+            type="button"
+            onClick={handleLogoutClick}
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-[2px] bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/20 hover:border-red-600 text-[11px] font-extrabold tracking-wider uppercase transition-all duration-200 cursor-pointer"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span>Log Out</span>
+          </button>
         </div>
       </aside>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/60 backdrop-blur-xs modal-backdrop-animate text-ink">
+          <div className="bg-white border border-[#DCE6EC] w-full max-w-md p-6 rounded-[4px] shadow-2xl space-y-5 modal-card-animate">
+            <div className="flex items-center gap-3 text-red-600">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-[20px] font-bold shrink-0">
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </div>
+              <h3 className="font-serif text-[20px] font-bold text-navy">
+                Log Out of CMS?
+              </h3>
+            </div>
+
+            <p className="text-[14px] text-ink leading-relaxed">
+              Are you sure you want to end your administrator session? You will need to log in again to manage website content.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(false)}
+                className="px-4 py-2.5 rounded-[2px] border border-slate-200 text-ink font-bold text-[12px] uppercase tracking-wider hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeLogout}
+                className="px-5 py-2.5 rounded-[2px] bg-red-600 hover:bg-red-700 text-white font-bold text-[12px] uppercase tracking-wider transition-colors cursor-pointer shadow-sm"
+              >
+                Yes, Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

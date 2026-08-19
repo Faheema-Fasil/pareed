@@ -1,13 +1,22 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getFullImageUrl } from '../common/ImageUploadField'
+import { logoutUser } from '../../../services/functions/userFunctions'
 
 function Header({ onToggleSidebar }) {
   const navigate = useNavigate()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
-  const handleLogout = () => {
-    navigate('/admin/login')
+  const handleLogoutClick = () => {
+    setShowProfileMenu(false)
+    setShowLogoutModal(true)
+  }
+
+  const executeLogout = () => {
+    logoutUser()
+    setShowLogoutModal(false)
+    navigate('/admin/login', { replace: true })
   }
 
   const storedUser = (() => {
@@ -61,36 +70,41 @@ function Header({ onToggleSidebar }) {
         <Link
           to="/"
           target="_blank"
-          className="hidden md:inline-flex items-center gap-1.5 text-[12px] font-bold text-[#1976A8] hover:text-navy transition-colors bg-[#F0F7FB] px-3 py-1.5 rounded-[2px]"
+          rel="noreferrer"
+          className="hidden md:inline-flex items-center gap-1.5 text-[12px] font-extrabold tracking-wider uppercase text-[#1976A8] hover:text-navy transition-colors"
         >
           <span>View Site</span>
           <span>↗</span>
         </Link>
 
-        {/* Profile Dropdown Trigger */}
+        {/* Profile Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2.5 focus:outline-none cursor-pointer p-1 rounded-[2px] hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-3 p-1.5 rounded-[4px] hover:bg-[#F7F9FA] transition-colors focus:outline-none cursor-pointer"
           >
-            <div className="w-9 h-9 rounded-full bg-navy text-white flex items-center justify-center font-bold text-sm overflow-hidden border border-gold/30">
-              {userAvatar ? (
-                <img
-                  src={userAvatar}
-                  alt={userName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span>{userInitials}</span>
-              )}
-            </div>
-            <div className="hidden md:flex flex-col text-left">
-              <span className="text-[13px] font-bold text-navy leading-tight">
+            {userAvatar ? (
+              <img
+                src={userAvatar}
+                alt={userName}
+                className="w-9 h-9 rounded-full object-cover border border-gold/40 shadow-xs"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-[#071D33] text-gold border border-gold/40 flex items-center justify-center font-bold text-[13px] shadow-xs">
+                {userInitials}
+              </div>
+            )}
+
+            <div className="hidden sm:block text-left">
+              <span className="block text-[13px] font-bold text-navy leading-tight">
                 {userName}
               </span>
-              <span className="text-[11px] text-[#647483]">Super User</span>
+              <span className="block text-[10px] text-[#647483] uppercase tracking-wider font-semibold">
+                Super User
+              </span>
             </div>
-            <svg className="w-3.5 h-3.5 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -132,7 +146,7 @@ function Header({ onToggleSidebar }) {
                 </Link>
 
                 <button
-                  onClick={handleLogout}
+                  onClick={handleLogoutClick}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition-colors text-left cursor-pointer font-medium group"
                 >
                   <svg className="w-4 h-4 text-red-500 group-hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,6 +160,45 @@ function Header({ onToggleSidebar }) {
         </div>
 
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/60 backdrop-blur-xs modal-backdrop-animate">
+          <div className="bg-white border border-[#DCE6EC] w-full max-w-md p-6 rounded-[4px] shadow-2xl space-y-5 modal-card-animate">
+            <div className="flex items-center gap-3 text-red-600">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-[20px] font-bold shrink-0">
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </div>
+              <h3 className="font-serif text-[20px] font-bold text-navy">
+                Log Out of CMS?
+              </h3>
+            </div>
+
+            <p className="text-[14px] text-ink leading-relaxed">
+              Are you sure you want to end your administrator session? You will need to log in again to manage website content.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(false)}
+                className="px-4 py-2.5 rounded-[2px] border border-slate-200 text-ink font-bold text-[12px] uppercase tracking-wider hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeLogout}
+                className="px-5 py-2.5 rounded-[2px] bg-red-600 hover:bg-red-700 text-white font-bold text-[12px] uppercase tracking-wider transition-colors cursor-pointer shadow-sm"
+              >
+                Yes, Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </header>
   )

@@ -196,13 +196,13 @@ export default function ContactInquiries() {
         <div className="pt-2 flex gap-2 flex-wrap">
           <a
             href={`tel:${lead.phone}`}
-            className="flex-1 min-w-[100px] text-center bg-gold hover:bg-gold/90 text-white font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider transition-colors shadow-xs"
+            className="flex-1 w-full text-center bg-gold hover:bg-gold/90 text-white font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider transition-colors shadow-xs"
           >
             Call Client
           </a>
           <a
             href={`mailto:${lead.email}`}
-            className="flex-1 min-w-[100px] text-center border border-navy text-navy font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider hover:bg-navy hover:text-white transition-colors"
+            className="flex-1  w-full text-center border border-navy text-navy font-extrabold text-[11px] py-2.5 rounded-[2px] uppercase tracking-wider hover:bg-navy hover:text-white transition-colors"
           >
             Send Email
           </a>
@@ -379,8 +379,8 @@ export default function ContactInquiries() {
 
       {/* Mobile, Tablet & 1024px Modal Drawer (Opens smoothly when clicking an inquiry) */}
       {showMobileDetail && selectedLead && (
-        <div className="xl:hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white border border-[#DCE6EC] w-full max-w-lg max-h-[90vh] flex flex-col rounded-[4px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+        <div className="xl:hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/60 backdrop-blur-xs modal-backdrop-animate">
+          <div className="bg-white border border-[#DCE6EC] w-full max-w-lg max-h-[90vh] flex flex-col rounded-[4px] shadow-2xl overflow-hidden modal-card-animate">
             {/* Modal Header */}
             <div className="p-4 border-b border-slate-100 bg-[#F7F9FA] flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -417,8 +417,8 @@ export default function ContactInquiries() {
 
       {/* Delete Confirmation Modal */}
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#DCE6EC] rounded-[4px] shadow-2xl p-6 sm:p-7 max-w-md w-full space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 backdrop-blur-xs p-4 modal-backdrop-animate">
+          <div className="bg-white border border-[#DCE6EC] rounded-[4px] shadow-2xl p-6 sm:p-7 max-w-md w-full space-y-5 modal-card-animate">
             <div className="flex items-center gap-3 text-red-600">
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-[20px] font-bold">
                 ⚠️

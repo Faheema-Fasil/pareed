@@ -77,7 +77,7 @@ export default function DashboardOverview() {
   ]
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="adminContainer space-y-8">
       {/* Welcome Banner */}
       <div className="bg-[#071D33] text-white p-6 sm:p-8 rounded-[4px] shadow-sm flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div>

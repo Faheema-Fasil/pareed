@@ -56,7 +56,7 @@ html {
   @apply mx-auto px-[32px] sm:px-[38px] md:px-[40px] lg:px-[150px] xl:px-[250px];
 }
 .adminContainer{
-  @apply max-w-[1050px] mx-auto;
+  @apply xl:max-w-[1050px] 2xl:max-w-full 2xl:p-10 mx-auto;
 }
 
 @keyframes heroZoom {
@@ -157,4 +157,33 @@ body {
 
 .custom-phone-input .PhoneInputInput::placeholder {
   color: #94A3B8;
+}
+
+/* Modal Open & Backdrop Smooth Animations */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.93) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-backdrop-animate {
+  animation: modalFadeIn 0.22s ease-out forwards;
+}
+
+.modal-card-animate {
+  animation: modalScaleIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

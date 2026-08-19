@@ -101,3 +101,14 @@ export const forgotPasswordAPI = async (data) => {
 export const resetPasswordAPI = async (data) => {
   return await postAPI(`${SERVER_URL}/api/auth/reset-password`, data)
 }
+
+/**
+ * Logout user by clearing all authentication tokens & storage
+ */
+export const logoutUser = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  localStorage.removeItem('rememberAdmin')
+  sessionStorage.clear()
+}
+
