@@ -1,12 +1,16 @@
 import React from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import WebsitePage from './pages/WebsitePage'
+import ErrorPage from './pages/ErrorPage'
 
 // Admin Auth Layout & Components
 import AdminLayout from './Admin/AdminLayout/AdminLayout'
 import LogIn from './Admin/components/logpage/LogIn'
 import ForgotPassword from './Admin/components/logpage/ForgotPassword'
 import ResetPassword from './Admin/components/logpage/ResetPassword'
+
+// Protected Route Guard
+import ProtectedRoute from './Admin/components/common/ProtectedRoute'
 
 // Admin Dashboard CMS Layout & Pages
 import DashboardLayout from './Admin/AdminLayout/DashboardLayout'
@@ -36,8 +40,15 @@ export default function App() {
         <Route path="reset-password" element={<ResetPassword />} />
       </Route>
 
-      {/* Admin CMS Dashboard Routes */}
-      <Route path="/admin/dashboard" element={<DashboardLayout />}>
+      {/* Admin CMS Dashboard Routes (Protected: Blocks unauthenticated users) */}
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<DashboardOverview />} />
         <Route path="hero" element={<HeroSettings />} />
         <Route path="about" element={<AboutSettings />} />
@@ -53,8 +64,9 @@ export default function App() {
         <Route path="profile" element={<AdminProfileSettings />} />
       </Route>
 
-      {/* Fallback to Home */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* 404 Error Page for all unmatched URLs */}
+      <Route path="*" element={<ErrorPage />} />
     </Routes>
   )
 }
+

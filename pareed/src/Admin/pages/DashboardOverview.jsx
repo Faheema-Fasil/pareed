@@ -79,7 +79,7 @@ export default function DashboardOverview() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Welcome Banner */}
-      <div className="bg-[#071D33] text-white p-6 sm:p-8 rounded-[4px] shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-[#071D33] text-white p-6 sm:p-8 rounded-[4px] shadow-sm flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div>
           <div className="text-gold text-[11px] font-extrabold uppercase tracking-[0.16em] manrope-extrabold mb-1">
             CONTROL PANEL
@@ -91,12 +91,14 @@ export default function DashboardOverview() {
             Update content across the website in real-time, manage product listings, edit team members, and view incoming customer inquiries.
           </p>
         </div>
-        <Link
-          to="/admin/dashboard/settings"
-          className="inline-flex items-center gap-2 bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-5 py-3 rounded-[2px] transition-all"
-        >
-          <span>Website Settings →</span>
+        <div className="w-full flex justify-end">
+          <Link
+            to="/admin/dashboard/settings"
+            className=" bg-gold hover:bg-gold/90 text-white font-extrabold text-[12px] uppercase tracking-wider px-5 py-3 rounded-[2px] transition-all"
+          >
+            <span>Website Settings →</span>
         </Link>
+        </div>
       </div>
 
       {/* Quick Stats Grid */}
