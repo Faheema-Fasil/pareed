@@ -166,7 +166,7 @@ function ResetPassword() {
 
             <button
               type="submit"
-              className="w-full py-4 px-6 rounded-[2px] bg-gold text-white font-extrabold text-[12px] tracking-[0.1em] uppercase hover:-translate-y-[2px] hover:shadow-lg hover:shadow-gold/25 transition-all duration-200 cursor-pointer"
+              className="w-full py-4 px-6 rounded-[2px] bg-gold hover:bg-[#B58628] text-white font-extrabold text-[12px] tracking-[0.1em] uppercase hover:-translate-y-[2px] hover:shadow-lg hover:shadow-[#C99A3A]/35 transition-all duration-200 cursor-pointer"
             >
               UPDATE PASSWORD →
             </button>

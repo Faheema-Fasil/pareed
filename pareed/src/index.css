@@ -5,14 +5,24 @@
   --serif: "Cormorant Garamond", "Georgia", serif;
   --sans: "Manrope", "Inter", Arial, sans-serif;
   --navy: #0B2A4A;
+  --navy-dark: #071D33;
+  --navy-hover: #051627;
   --gold: #C99A3A;
+  --gold-hover: #B58628;
+  --gold-light: #DFB35A;
+  --ink: #18232D;
 }
 
 @theme {
-  --font-sans: var(--sans);
-  --font-serif: var(--serif);
-  --color-navy: var(--navy);
-  --color-gold: var(--gold);
+  --font-sans: "Manrope", "Inter", Arial, sans-serif;
+  --font-serif: "Cormorant Garamond", "Georgia", serif;
+  --color-navy: #0B2A4A;
+  --color-navy-dark: #071D33;
+  --color-navy-hover: #051627;
+  --color-gold: #C99A3A;
+  --color-gold-hover: #B58628;
+  --color-gold-light: #DFB35A;
+  --color-ink: #18232D;
 }
 
 html {
@@ -186,4 +196,73 @@ body {
 
 .modal-card-animate {
   animation: modalScaleIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Mobile Touch & Tactile Press Effects */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, [role="button"], input[type="button"], input[type="submit"], select, summary {
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+/* Interactive Buttons & Links Hover & Transition Styling */
+.bg-gold {
+  background-color: #C99A3A;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+}
+
+a.bg-gold:hover,
+button.bg-gold:hover,
+[role="button"].bg-gold:hover {
+  background-color: #B58628;
+  filter: brightness(1.04);
+  box-shadow: 0 10px 24px -4px rgba(201, 154, 58, 0.38);
+}
+
+.bg-navy {
+  background-color: #0B2A4A;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+a.bg-navy:hover,
+button.bg-navy:hover,
+[role="button"].bg-navy:hover {
+  background-color: #051627;
+  box-shadow: 0 10px 24px -4px rgba(7, 29, 51, 0.32);
+}
+
+/* Tactile press feedback on touch devices */
+button:active:not(:disabled),
+a:active:not([aria-disabled="true"]),
+[role="button"]:active,
+.touch-press:active {
+  transform: scale(0.97);
+  opacity: 0.92;
+  transition: transform 0.08s ease-in-out, opacity 0.08s ease-in-out;
+}
+
+/* Focus states for inputs & interactive elements */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  border-color: #C99A3A !important;
+  box-shadow: 0 0 0 2px rgba(201, 154, 58, 0.25);
+}
+
+/* Touchscreens: Immediate active feedback for cards and buttons */
+@media (hover: none) and (pointer: coarse) {
+  a:active,
+  button:active,
+  [role="button"]:active {
+    filter: brightness(0.92);
+  }
 }

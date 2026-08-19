@@ -330,7 +330,7 @@ export default function ContactSection() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex items-center justify-center gap-[10px] px-8 py-4 rounded-[2px] bg-gold text-white font-extrabold text-[12px] tracking-[0.08em] uppercase hover:-translate-y-[2px] hover:shadow-lg hover:shadow-gold/25 transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center gap-[10px] px-8 py-4 rounded-[2px] bg-gold hover:bg-[#B58628] text-white font-extrabold text-[12px] tracking-[0.08em] uppercase hover:-translate-y-[2px] hover:shadow-lg hover:shadow-[#C99A3A]/35 transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? 'SENDING ENQUIRY...' : isSubmitted ? 'ENQUIRY RECEIVED ✓' : 'SEND ENQUIRY →'}
                 </button>

@@ -124,14 +124,18 @@ export default function PhoneInputField({
         </label>
       )}
 
-      <div className="relative flex items-center w-full">
+      <div
+        className={`relative flex items-stretch w-full bg-white border rounded-[1px] transition-colors overflow-hidden ${
+          error
+            ? 'border-red-500 focus-within:border-red-600'
+            : 'border-[#DCE6EC] focus-within:border-[#1976A8]'
+        }`}
+      >
         {/* Country Selector Trigger */}
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex-shrink-0 flex items-center gap-1.5 bg-[#F7F9FA] border border-r-0 px-2.5 sm:px-3.5 py-3.5 text-[14px] text-ink outline-none transition-colors rounded-l-[1px] hover:bg-[#EEF3F5] cursor-pointer select-none ${
-            error ? 'border-red-500' : 'border-[#DCE6EC]'
-          }`}
+          className="flex-shrink-0 flex items-center gap-1.5 bg-[#F7F9FA] border-r border-[#DCE6EC] px-2.5 sm:px-3.5 py-3.5 text-[14px] text-ink outline-none transition-colors hover:bg-[#EEF3F5] cursor-pointer select-none"
         >
           {/* Flag Image */}
           <img
@@ -159,11 +163,7 @@ export default function PhoneInputField({
           onChange={handleNumberChange}
           placeholder={placeholder}
           required={required}
-          className={`w-full min-w-0 border bg-white px-3 sm:px-4 py-3.5 text-[14px] text-ink outline-none transition-colors rounded-r-[1px] placeholder:text-[#94A3B8] ${
-            error
-              ? 'border-red-500 focus:border-red-600'
-              : 'border-[#DCE6EC] focus:border-[#1976A8]'
-          }`}
+          className="w-full min-w-0 bg-transparent border-0 px-3 sm:px-4 py-3.5 text-[14px] text-ink outline-none focus:outline-none placeholder:text-[#94A3B8]"
         />
       </div>
 

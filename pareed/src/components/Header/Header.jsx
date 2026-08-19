@@ -88,7 +88,7 @@ function Header() {
 
             <a
               href="#contact"
-              className="inline-flex items-center justify-center gap-2.5 px-[21px] py-[14px] rounded-[2px] bg-gold text-white font-extrabold text-[12px] tracking-[0.08em] uppercase hover:-translate-y-[3px] hover:shadow-[0_12px_25px_rgba(201,154,58,0.25)] transition-all duration-300 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2.5 px-[21px] py-[14px] rounded-[2px] bg-gold hover:bg-[#B58628] text-white font-extrabold text-[12px] tracking-[0.08em] uppercase hover:-translate-y-[2px] hover:shadow-[0_12px_25px_rgba(201,154,58,0.35)] transition-all duration-200 cursor-pointer"
             >
               REQUEST A QUOTE
             </a>
@@ -130,7 +130,7 @@ function Header() {
 
           <a
             href="#contact"
-            className="inline-flex items-center justify-center px-[21px] py-[14px] rounded-[2px] bg-gold text-white font-extrabold text-xs uppercase tracking-wider text-center mt-3 shadow-md"
+            className="inline-flex items-center justify-center px-[21px] py-[14px] rounded-[2px] bg-gold hover:bg-[#B58628] text-white font-extrabold text-xs uppercase tracking-wider text-center mt-3 shadow-md transition-all duration-200"
             onClick={() => setIsMenuOpen(false)}
           >
             REQUEST A QUOTE

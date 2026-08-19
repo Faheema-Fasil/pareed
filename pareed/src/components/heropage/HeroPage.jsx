@@ -94,7 +94,7 @@ function HeroPage() {
             {heroData.primaryButtonText && (
               <a
                 href={heroData.primaryButtonLink || '#contact'}
-                className="inline-flex items-center justify-center gap-2.5 px-[21px] py-[14px] rounded-[2px] bg-gold text-white text-[12px] font-extrabold tracking-[0.08em] uppercase hover:-translate-y-[3px] hover:shadow-xl hover:shadow-gold/25 transition-all duration-300 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2.5 px-[21px] py-[14px] rounded-[2px] bg-gold hover:bg-[#B58628] text-white text-[12px] font-extrabold tracking-[0.08em] uppercase hover:-translate-y-[2px] hover:shadow-xl hover:shadow-[#C99A3A]/35 transition-all duration-200 cursor-pointer"
               >
                 {heroData.primaryButtonText}
               </a>
@@ -103,7 +103,7 @@ function HeroPage() {
             {heroData.secondaryButtonText && (
               <a
                 href={heroData.secondaryButtonLink || '#products'}
-                className="inline-flex items-center justify-center gap-2.5 px-[21px] py-[14px] rounded-[2px] bg-transparent border border-white/65 text-white text-[12px] font-extrabold tracking-[0.08em] uppercase hover:-translate-y-[3px] hover:bg-white/10 transition-all duration-300 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2.5 px-[21px] py-[14px] rounded-[2px] bg-transparent border border-white/65 hover:border-white hover:bg-white/15 text-white text-[12px] font-extrabold tracking-[0.08em] uppercase hover:-translate-y-[2px] transition-all duration-200 cursor-pointer"
               >
                 {heroData.secondaryButtonText}
               </a>

@@ -134,7 +134,7 @@ function OurProducts() {
 
                   <a
                     href="#contact"
-                    className="self-start mt-[16px] inline-flex items-center justify-center gap-[10px] px-[21px] py-[13px] rounded-[2px] bg-gold text-white font-extrabold text-[12px] tracking-[0.08em] hover:-translate-y-[2px] hover:shadow-lg hover:shadow-gold/25 transition-all duration-300"
+                    className="self-start mt-[16px] inline-flex items-center justify-center gap-[10px] px-[21px] py-[13px] rounded-[2px] bg-gold hover:bg-[#B58628] text-white font-extrabold text-[12px] tracking-[0.08em] hover:-translate-y-[2px] hover:shadow-lg hover:shadow-[#C99A3A]/35 transition-all duration-200 cursor-pointer"
                   >
                     ENQUIRE →
                   </a>
