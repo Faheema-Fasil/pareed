@@ -225,7 +225,7 @@ export default function ContactSection() {
           </div>
 
           {/* Right Column: Contact Form */}
-          <div className="p-8 sm:p-12 lg:p-[55px] flex flex-col justify-center">
+          <div className="p-6 sm:p-10 lg:p-8 xl:p-12 2xl:p-14 flex flex-col justify-center">
             {/* Eyebrow */}
             <div className="text-gold text-[12px] manrope-extrabold font-extrabold tracking-[0.22em] uppercase mb-[14px]">
               Contact Us
@@ -245,7 +245,7 @@ export default function ContactSection() {
 
             {/* Lead Form with country-specific validation */}
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3.5 sm:gap-4">
                 {/* Full Name */}
                 <InputField
                   label="FULL NAME *"
@@ -321,7 +321,7 @@ export default function ContactSection() {
                   onChange={handleChange}
                   placeholder="Tell us what you need..."
                   error={errors.message}
-                  className="sm:col-span-2"
+                  className="sm:col-span-2 lg:col-span-1 xl:col-span-2"
                 />
               </div>
 

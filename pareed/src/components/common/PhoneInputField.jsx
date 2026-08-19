@@ -135,15 +135,15 @@ export default function PhoneInputField({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="flex-shrink-0 flex items-center gap-1.5 bg-[#F7F9FA] border-r border-[#DCE6EC] px-2.5 sm:px-3.5 py-3.5 text-[14px] text-ink outline-none transition-colors hover:bg-[#EEF3F5] cursor-pointer select-none"
+          className="flex-shrink-0 flex items-center gap-1.5 bg-[#F7F9FA] border-r border-[#DCE6EC] px-2.5 sm:px-3 py-3 sm:py-3.5 text-[13px] sm:text-[14px] text-ink outline-none transition-colors hover:bg-[#EEF3F5] cursor-pointer select-none"
         >
           {/* Flag Image */}
           <img
             src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${selectedCountry}.svg`}
             alt={en[selectedCountry] || selectedCountry}
-            className="w-5 h-3.5 object-cover rounded-[1px] shadow-xs flex-shrink-0"
+            className="w-4.5 h-3.5 object-cover rounded-[1px] shadow-xs flex-shrink-0"
           />
-          <span className="text-[12px] sm:text-[13px] font-semibold text-[#18232D]">
+          <span className="text-[12px] sm:text-[13px] font-semibold text-[#18232D] tracking-tight">
             {dialCode}
           </span>
           <svg
@@ -163,7 +163,7 @@ export default function PhoneInputField({
           onChange={handleNumberChange}
           placeholder={placeholder}
           required={required}
-          className="w-full min-w-0 bg-transparent border-0 px-3 sm:px-4 py-3.5 text-[14px] text-ink outline-none focus:outline-none placeholder:text-[#94A3B8]"
+          className="w-full min-w-0 flex-1 bg-transparent border-0 px-2.5 sm:px-3.5 py-3 sm:py-3.5 text-[13px] sm:text-[14px] text-ink outline-none focus:outline-none placeholder:text-[#94A3B8]"
         />
       </div>
 

@@ -69,18 +69,18 @@ function OurTeam() {
       <div className="container mx-auto">
         
         {/* Section Header */}
-        <div className="mb-12 md:mb-[50px] flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-10">
-          <div>
+        <div className="mb-12 md:mb-[50px] flex flex-col lg:flex-row lg:items-end justify-between gap-6 md:gap-10">
+          <div >
             <div className="text-gold text-[12px] manrope-extrabold font-extrabold tracking-[0.22em] uppercase mb-[18px]">
               Our Team
             </div>
             <h2 className="font-serif cormorant-garamond-extrabold text-[clamp(42px,4vw,64px)] font-semibold leading-[0.95] tracking-[-0.02em] text-navy">
               The people
-              <br />
+          
               behind Pareed.
             </h2>
           </div>
-          <p className="max-w-[480px] text-[#647483] text-[15px] sm:text-[16px] leading-[1.8]">
+          <p className=" text-[#647483] text-[15px] sm:text-[16px] leading-[1.8]">
             Experienced leadership committed to quality seafood sourcing, customer relationships and dependable wholesale distribution across the UAE.
           </p>
         </div>
